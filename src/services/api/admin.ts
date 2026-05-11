@@ -26,6 +26,24 @@ const admin = {
   deleteUser(id: string) {
     return network.delete(`/admins/${id}`);
   },
+  getSuspiciousIps() {
+    return network.get("/admins/security/suspicious-ips");
+  },
+  getLoginLogs(params: {
+    currentLimit?: number;
+    currentPage?: number;
+    status?: string;
+    device_type?: string;
+  }) {
+    return network.get("/admins/security/logs", {
+      params: {
+        per_page: params.currentLimit,
+        page: params.currentPage,
+        status: params.status || undefined,
+        device_type: params.device_type || undefined,
+      },
+    });
+  },
 };
 
 export default admin;

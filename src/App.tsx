@@ -8,6 +8,8 @@ import adminLoader from "./components/layouts/AdminLayout/AdminLayout.loader";
 import AdminDashboard from "./components/pages/Admin/Admin";
 import mainLoader from "./components/layouts/MainLayout/MainLayout.loader";
 import UserManagement from "./components/pages/Admin/UserManagement";
+import LoginLog from "./components/pages/Admin/LoginLog";
+import Profile from "./components/pages/Profile";
 
 function App() {
   const router = createBrowserRouter([
@@ -15,6 +17,11 @@ function App() {
       path: "/",
       loader: mainLoader,
       element: <Dashboard />,
+    },
+    {
+      path: "/profile",
+      loader: mainLoader,
+      element: <Profile />,
     },
     {
       path: "/login",
@@ -43,6 +50,11 @@ function App() {
       path: "/admin/user-management",
       loader: adminLoader,
       element: <UserManagement />,
+    },
+    {
+      path: "/admin/log",
+      loader: adminLoader,
+      element: <LoginLog />,
     },
   ]);
 

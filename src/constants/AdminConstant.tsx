@@ -30,3 +30,14 @@ export const HEADER_TABLE_USER = [
   "Tanggal Daftar",
   "Aksi",
 ];
+
+export const HEADER_TABLE_LOGIN_LOG = [
+  "No",
+  "User",
+  "IP Address",
+  "Browser",
+  "Platform",
+  "Device",
+  "Status",
+  "Waktu",
+];
