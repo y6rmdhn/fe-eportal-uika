@@ -1,5 +1,6 @@
 import Cookies from "js-cookie";
 import { ROLE_ADMIN, SESSION_KEY } from "./constants";
+import auth from "@/services/api/auth";
 
 const session = {
   setSession(user: any) {
@@ -13,14 +14,18 @@ const session = {
   clearSession() {
     localStorage.removeItem(SESSION_KEY);
 
-    Cookies.remove('token');
-    Cookies.remove('user_tias');
-    Cookies.remove('tias');
+    Cookies.remove("token");
+    Cookies.remove("user_tias");
+    Cookies.remove("tias");
   },
 
-  isAuthenticated() {
-    const user = this.getSession();
-    return user !== null;
+  async isAuthenticated() {
+    try {
+      const res = await auth.getUser();
+      return res.status === 200;
+    } catch {
+      return false;
+    }
   },
 
   isAdmin() {

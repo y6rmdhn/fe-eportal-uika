@@ -1,0 +1,182 @@
+import DataTable from "@/common/DataTable";
+import AdminLayout from "@/components/layouts/AdminLayout";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
+import useDataTable from "@/hooks/Table/useDataTable";
+import useUserManagement from "@/hooks/UserManagement/useUserManagement";
+import { useMemo, useState } from "react";
+import { Search, Plus, Edit2, Trash2 } from "lucide-react";
+import DialogCreateUser from "./Dialog/DialogCreateUser";
+import DialogUpdateUser from "./Dialog/DialogUpdateUser";
+import type { UserData } from "@/types/general.type";
+import DialogDeleteUser from "./Dialog/DialogDeleteUser";
+
+const UserManagement = () => {
+  const [selectedAction, setSelectedAction] = useState<{
+    data: UserData;
+    type: "update" | "delete";
+  } | null>(null);
+
+  const handleChanngeAction = (open: boolean) => {
+    if (!open) setSelectedAction(null);
+  };
+
+  const {
+    currentLimit,
+    currentPage,
+    handleChangeLimit,
+    handleChangePage,
+    currentSearch,
+    handleChangeSearch,
+  } = useDataTable();
+
+  // LOGIKA TETAP SAMA SEPERTI KODE KAMU
+  const { dataUserManagement, isLoadingUserManagement, refetch } =
+    useUserManagement({
+      currentLimit,
+      currentPage,
+      currentSearch,
+    });
+
+  const filteredData = useMemo(() => {
+    return (dataUserManagement?.data || []).map(
+      (user: UserData, index: number) => {
+        // PERBAGUS TAMPILAN BARIS TABEL
+        return [
+          // 1. Nomor
+          <span key={`no-${index}`} className="font-medium text-gray-500">
+            {currentLimit * (currentPage - 1) + index + 1}
+          </span>,
+
+          // 2. Info User (Nama & Email bertumpuk)
+          <div key={`info-${index}`} className="flex flex-col py-1">
+            <p className="font-bold text-[14px] text-gray-900 leading-tight">
+              {user.name}
+            </p>
+            <p className="text-xs font-medium text-gray-500 mt-0.5">
+              {user.email}
+            </p>
+          </div>,
+
+          // 3. ID (NIP/NPM/NIDN) - Dibikin ala badge tipis
+          <span
+            key={`id-${index}`}
+            className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
+          >
+            {user.nip || user.npm || user.nidn || "-"}
+          </span>,
+
+          // 4. Role - Badge warna hijau emerald
+          <span
+            key={`role-${index}`}
+            className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 capitalize border border-emerald-100 tracking-wide"
+          >
+            {user.role}
+          </span>,
+
+          // 5. Tanggal Daftar
+          <span
+            key={`date-${index}`}
+            className="text-sm text-gray-600 font-medium"
+          >
+            {user.created_at.split(" ")[0]}
+          </span>,
+
+          // 6. Aksi (Hanya Icon Edit dan Hapus)
+          <div key={`action-${index}`} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
+              title="Edit"
+              onClick={() => setSelectedAction({ data: user, type: "update" })}
+            >
+              <Edit2 size={16} strokeWidth={2.5} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors"
+              title="Hapus"
+              onClick={() => setSelectedAction({ data: user, type: "delete" })}
+            >
+              <Trash2 size={16} strokeWidth={2.5} />
+            </Button>
+          </div>,
+        ];
+      },
+    );
+  }, [dataUserManagement, currentLimit, currentSearch, currentPage]);
+
+  return (
+    <AdminLayout>
+      <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto pb-8">
+        {/* ── HEADER HALAMAN ── */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              Menu Management
+            </h1>
+            <p className="text-sm font-medium text-gray-500 mt-1">
+              Kelola data pengguna, hak akses, dan role.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            {/* Input Search Modern */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name or email..."
+                className="pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl transition-all"
+                onChange={(e) => handleChangeSearch(e.target.value)}
+              />
+            </div>
+
+            {/* Tombol Create Modern */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20 font-bold px-5 transition-all">
+                  <Plus className="h-5 w-5 mr-1.5" strokeWidth={2.5} />
+                  Create
+                </Button>
+              </DialogTrigger>
+              <DialogCreateUser />
+            </Dialog>
+          </div>
+        </div>
+
+        {/* ── KOMPONEN DATA TABLE ── */}
+        <div className="bg-white p-2 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+          <DataTable
+            header={HEADER_TABLE_USER}
+            data={filteredData}
+            isLoading={isLoadingUserManagement}
+            totalPages={dataUserManagement?.meta.last_page || 1}
+            currentPage={currentPage}
+            currentLimit={currentLimit}
+            onChangePage={handleChangePage}
+            onChangeLimit={handleChangeLimit}
+          />
+
+          <DialogUpdateUser
+            refetch={refetch}
+            open={selectedAction !== null && selectedAction.type === "update"}
+            currentData={selectedAction?.data}
+            handleChangeAction={handleChanngeAction}
+          />
+
+          <DialogDeleteUser
+            open={selectedAction !== null && selectedAction.type === "delete"}
+            currentData={selectedAction?.data}
+            handleChangeAction={handleChanngeAction}
+          />
+        </div>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default UserManagement;

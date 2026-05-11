@@ -5,10 +5,8 @@ import environment from "@/config/environment.ts";
 
 const network = axios.create({
   baseURL: environment.API_URL,
-    withCredentials: true,
+  withCredentials: true,
 });
-
-
 
 network.interceptors.request.use(
   (config) => {
@@ -26,16 +24,18 @@ network.interceptors.request.use(
 );
 
 network.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      session.clearSession();
+    if (error.response?.status === 401) {
+      // Jangan redirect kalau memang lagi di /login atau request dari authLoader
+      const isLoginPage = window.location.pathname === "/login";
+      const isLogoutRequest = error.config?.url?.includes("logout");
 
-      window.location.href = "/login";
+      if (!isLoginPage && !isLogoutRequest) {
+        session.clearSession();
+        window.location.href = "/login";
+      }
     }
-
     return Promise.reject(error);
   },
 );
