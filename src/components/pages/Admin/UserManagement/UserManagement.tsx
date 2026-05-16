@@ -12,6 +12,13 @@ import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
 import DialogDeleteUser from "./Dialog/DialogDeleteUser";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
@@ -30,6 +37,8 @@ const UserManagement = () => {
     handleChangePage,
     currentSearch,
     handleChangeSearch,
+    currentFilter,
+    handleChangeFilter,
   } = useDataTable();
 
   // LOGIKA TETAP SAMA SEPERTI KODE KAMU
@@ -38,6 +47,7 @@ const UserManagement = () => {
       currentLimit,
       currentPage,
       currentSearch,
+      currentFilter,
     });
 
   const filteredData = useMemo(() => {
@@ -111,13 +121,13 @@ const UserManagement = () => {
   }, [dataUserManagement, currentLimit, currentSearch, currentPage]);
 
   return (
-    <AdminLayout>
+    <AdminLayout desc="Management User">
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto pb-8">
         {/* ── HEADER HALAMAN ── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Menu Management
+              Management User
             </h1>
             <p className="text-sm font-medium text-gray-500 mt-1">
               Kelola data pengguna, hak akses, dan role.
@@ -126,6 +136,22 @@ const UserManagement = () => {
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             {/* Input Search Modern */}
+
+            <Select
+              value={currentFilter || "all"}
+              onValueChange={(v) => handleChangeFilter(v === "all" ? "" : v)}
+            >
+              <SelectTrigger className="w-[150px] h-11 rounded-xl border-gray-200 bg-gray-50">
+                <SelectValue placeholder="Filter role" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">Semua role</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="dosen">Dosen</SelectItem>
+                <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
+              </SelectContent>
+            </Select>
+
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input

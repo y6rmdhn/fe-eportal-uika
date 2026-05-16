@@ -1,18 +1,18 @@
 import network from "@/utils/network.ts";
 
-interface UserManagementParams {
-  currentLimit?: number;
-  currentPage?: number;
-  currentSearch?: string;
-}
-
 const admin = {
-  getAllUserManagement(params: UserManagementParams) {
+  getAllUserManagement(params: {
+    currentLimit?: number;
+    currentPage?: number;
+    currentSearch?: string;
+    currentFilter?: string;
+  }) {
     return network.get("/admins", {
       params: {
         search: params.currentSearch,
         per_page: params.currentLimit,
         page: params.currentPage,
+        role: params.currentFilter || undefined,
       },
     });
   },

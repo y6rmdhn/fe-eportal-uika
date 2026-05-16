@@ -3,10 +3,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import auth from "@/services/api/auth.ts";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, User, LayoutGrid, ArrowRight } from "lucide-react";
+import { LogOut, LayoutGrid, ArrowRight, UserCircle } from "lucide-react";
 import { useLogout } from "@/hooks/Auth/useLogout.ts";
 import toast from "react-hot-toast";
 import network from "@/utils/network";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 
 // ASSET LOGO UIKA
 const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
@@ -28,6 +38,8 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadingApp, setLoadingApp] = useState<string | number | null>(null);
   const { handleLogout, isPendingLogout } = useLogout();
+
+  const navigate = useNavigate();
 
   const { data: userResponse, isLoading: isUserLoading } = useQuery({
     queryKey: ["user"],
@@ -150,30 +162,58 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* User Info & Logout */}
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              {/* User Chip */}
-              <div className="flex-1 sm:flex-none flex items-center gap-3 bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-100">
-                <div className="bg-white p-1.5 rounded-lg shadow-sm border border-gray-50">
-                  <User size={16} className="text-emerald-600" />
-                </div>
-                <span className="text-sm font-bold text-gray-700 tracking-wide truncate max-w-[150px]">
-                  {isUserLoading ? "Memuat..." : userData?.name || "Mahasiswa"}
-                </span>
-              </div>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                disabled={isPendingLogout}
-                className={`flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white transition-all duration-300 px-4 py-2.5 rounded-xl text-sm font-bold border border-rose-100 hover:border-rose-500 hover:shadow-lg hover:shadow-rose-500/20 ${isPendingLogout ? "opacity-50 cursor-not-allowed" : ""}`}
-                title="Logout"
-              >
-                <LogOut size={18} />
-                <span className="hidden sm:inline">
-                  {isPendingLogout ? "Keluar..." : "Logout"}
-                </span>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-3 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <Avatar className="h-8 w-8 rounded-full border-2 border-emerald-50 shadow-sm">
+                      <AvatarImage
+                        src={userData?.image}
+                        alt={userData?.name}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-emerald-50 text-emerald-600 font-extrabold text-sm">
+                        {userData?.name?.charAt(0).toUpperCase() ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-bold text-gray-700 tracking-wide truncate max-w-[150px] hidden sm:block">
+                      {isUserLoading
+                        ? "Memuat..."
+                        : userData?.name || "Pengguna"}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-52 rounded-xl border-gray-100 shadow-lg"
+                >
+                  <DropdownMenuLabel className="flex flex-col gap-0.5 px-3 py-2">
+                    <span className="font-bold text-gray-900 text-sm">
+                      {userData?.name}
+                    </span>
+                    <span className="text-xs text-gray-400 font-normal">
+                      {userData?.email}
+                    </span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="gap-2 cursor-pointer rounded-lg mx-1 font-medium text-gray-700"
+                  >
+                    <UserCircle size={15} />
+                    Profile Saya
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    disabled={isPendingLogout}
+                    className="gap-2 cursor-pointer rounded-lg mx-1 mb-1 font-medium text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                  >
+                    <LogOut size={15} />
+                    {isPendingLogout ? "Keluar..." : "Logout"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

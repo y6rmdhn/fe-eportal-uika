@@ -76,11 +76,11 @@ const AdminDashboard = () => {
         description: "Idle / lama tidak login",
       },
       {
-        title: "Sesi SSO Aktif",
-        total: stats?.active_sso_sessions || 0,
+        title: "Login Hari Ini",
+        total: stats?.total_login_today || 0,
         icon: <Activity className="h-6 w-6 text-amber-600" />,
         bgColor: "bg-amber-50",
-        description: "User yang sedang login",
+        description: "Total login sukses hari ini",
       },
     ];
   }, [stats]);
