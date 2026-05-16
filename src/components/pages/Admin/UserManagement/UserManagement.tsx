@@ -7,7 +7,15 @@ import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
 import { useMemo, useState } from "react";
-import { Search, Plus, Edit2, Trash2, KeyRound } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  KeyRound,
+  Download,
+  Upload,
+} from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
@@ -20,6 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DialogResetPassword from "./Dialog/DialogResetPassword";
+import useExportImportUser from "@/hooks/UserManagement/useExportImportUser";
+import { Spinner } from "@/components/ui/spinner";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
@@ -50,6 +60,15 @@ const UserManagement = () => {
       currentSearch,
       currentFilter,
     });
+
+  const {
+    exportUsers,
+    isPendingExport,
+    isPendingImport,
+    fileInputRef,
+    handleImportClick,
+    handleFileChange,
+  } = useExportImportUser(currentSearch, currentFilter);
 
   const filteredData = useMemo(() => {
     return (dataUserManagement?.data || []).map(
@@ -174,6 +193,62 @@ const UserManagement = () => {
                 onChange={(e) => handleChangeSearch(e.target.value)}
               />
             </div>
+
+            <>
+              {/* Hidden file input untuk import */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
+              {/* Tombol Import */}
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl border-gray-200 font-bold px-4"
+                onClick={handleImportClick}
+                disabled={isPendingImport}
+              >
+                {isPendingImport ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1.5" />
+                    Import
+                  </>
+                )}
+              </Button>
+
+              {/* Tombol Export */}
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold px-4"
+                onClick={() => exportUsers()}
+                disabled={isPendingExport}
+              >
+                {isPendingExport ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-1.5" />
+                    Export
+                  </>
+                )}
+              </Button>
+
+              {/* Tombol Create */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 ...">
+                    <Plus className="h-5 w-5 mr-1.5" />
+                    Create
+                  </Button>
+                </DialogTrigger>
+                <DialogCreateUser />
+              </Dialog>
+            </>
 
             {/* Tombol Create Modern */}
             <Dialog>

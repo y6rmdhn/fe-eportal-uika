@@ -50,6 +50,17 @@ const admin = {
   ) {
     return network.post(`/admins/${id}/reset-password`, payload);
   },
+  exportUsers(params: { role?: string; search?: string }) {
+    return network.get("/admins/export", {
+      params,
+      responseType: "blob",
+    });
+  },
+  importUsers(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return network.post("/admins/import", formData);
+  },
 };
 
 export default admin;
