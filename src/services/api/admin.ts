@@ -44,6 +44,12 @@ const admin = {
       },
     });
   },
+  resetUserPassword(
+    id: string,
+    payload: { password: string; password_confirmation: string },
+  ) {
+    return network.post(`/admins/${id}/reset-password`, payload);
+  },
 };
 
 export default admin;

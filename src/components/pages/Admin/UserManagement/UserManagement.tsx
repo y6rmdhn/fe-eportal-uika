@@ -7,7 +7,7 @@ import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
 import { useMemo, useState } from "react";
-import { Search, Plus, Edit2, Trash2 } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, KeyRound } from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
@@ -19,11 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DialogResetPassword from "./Dialog/DialogResetPassword";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
     data: UserData;
-    type: "update" | "delete";
+    type: "update" | "delete" | "reset-password";
   } | null>(null);
 
   const handleChanngeAction = (open: boolean) => {
@@ -105,6 +106,19 @@ const UserManagement = () => {
             >
               <Edit2 size={16} strokeWidth={2.5} />
             </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-amber-600 hover:bg-amber-50 hover:text-amber-700 rounded-lg transition-colors"
+              title="Reset Password"
+              onClick={() =>
+                setSelectedAction({ data: user, type: "reset-password" })
+              }
+            >
+              <KeyRound size={16} strokeWidth={2.5} />
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -196,6 +210,15 @@ const UserManagement = () => {
 
           <DialogDeleteUser
             open={selectedAction !== null && selectedAction.type === "delete"}
+            currentData={selectedAction?.data}
+            handleChangeAction={handleChanngeAction}
+          />
+
+          <DialogResetPassword
+            open={
+              selectedAction !== null &&
+              selectedAction.type === "reset-password"
+            }
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
           />
