@@ -61,6 +61,9 @@ const admin = {
     formData.append("file", file);
     return network.post("/admins/import", formData);
   },
+  getActivityLogs(id: string, params?: { type?: string; per_page?: number }) {
+    return network.get(`/admins/${id}/activity-logs`, { params });
+  },
 };
 
 export default admin;

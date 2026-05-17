@@ -104,7 +104,7 @@ const AdminLayout = (props: PropsType) => {
                     Dashboard Utama
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => navigate("/admin/profile")}
+                    onClick={() => navigate("/profile")}
                     className="gap-2 cursor-pointer rounded-lg mx-1 font-medium text-gray-700"
                   >
                     <UserCircle size={15} />

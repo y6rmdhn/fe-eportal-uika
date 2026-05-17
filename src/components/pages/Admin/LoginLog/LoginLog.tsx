@@ -21,7 +21,11 @@ import {
   CheckCircle2,
   XCircle,
   Activity,
+  History,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import DialogActivityLog from "../UserManagement/Dialog/DialogActivityLog";
+import type { UserData } from "@/types/general.type";
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   success: {
@@ -42,6 +46,11 @@ const DEVICE_ICON: Record<string, React.ReactNode> = {
 
 const LoginLog = () => {
   const [currentDevice, setCurrentDevice] = useState("");
+
+  const [selectedUser, setSelectedUser] = useState<UserData | undefined>(
+    undefined,
+  );
+  const [openActivity, setOpenActivity] = useState(false);
 
   const {
     currentLimit,
@@ -124,6 +133,24 @@ const LoginLog = () => {
             {new Date(log.created_at).toLocaleDateString("id-ID")}
           </span>
           <span className="text-xs text-gray-400">{log.created_at_human}</span>
+        </div>,
+        <div key={`action-${index}`}>
+          {log.user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded-lg"
+              title="Riwayat Aktivitas"
+              onClick={() => {
+                setSelectedUser(log.user);
+                setOpenActivity(true);
+              }}
+            >
+              <History size={16} strokeWidth={2.5} />
+            </Button>
+          ) : (
+            <span className="text-xs text-gray-300">-</span>
+          )}
         </div>,
       ];
     });
@@ -264,6 +291,15 @@ const LoginLog = () => {
             currentLimit={currentLimit}
             onChangePage={handleChangePage}
             onChangeLimit={handleChangeLimit}
+          />
+
+          <DialogActivityLog
+            open={openActivity}
+            currentData={selectedUser}
+            handleChangeAction={(open) => {
+              setOpenActivity(open);
+              if (!open) setSelectedUser(undefined);
+            }}
           />
         </div>
       </div>

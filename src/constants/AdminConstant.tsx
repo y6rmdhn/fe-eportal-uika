@@ -40,4 +40,5 @@ export const HEADER_TABLE_LOGIN_LOG = [
   "Device",
   "Status",
   "Waktu",
+  "Aksi",
 ];
