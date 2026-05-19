@@ -3,7 +3,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import auth from "@/services/api/auth.ts";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, LayoutGrid, ArrowRight, UserCircle } from "lucide-react";
+import {
+  LogOut,
+  LayoutGrid,
+  ArrowRight,
+  UserCircle,
+  LayoutDashboard,
+} from "lucide-react";
 import { useLogout } from "@/hooks/Auth/useLogout.ts";
 import toast from "react-hot-toast";
 import network from "@/utils/network";
@@ -203,6 +209,18 @@ export default function Dashboard() {
                     <UserCircle size={15} />
                     Profile Saya
                   </DropdownMenuItem>
+                  {userData?.role === "admin" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => navigate("/admin")}
+                        className="gap-2 cursor-pointer rounded-lg mx-1 font-medium text-emerald-700 focus:text-emerald-700 focus:bg-emerald-50"
+                      >
+                        <LayoutDashboard size={15} />
+                        Dashboard Admin
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}

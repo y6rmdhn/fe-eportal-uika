@@ -237,17 +237,6 @@ const UserManagement = () => {
                   </>
                 )}
               </Button>
-
-              {/* Tombol Create */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 ...">
-                    <Plus className="h-5 w-5 mr-1.5" />
-                    Create
-                  </Button>
-                </DialogTrigger>
-                <DialogCreateUser />
-              </Dialog>
             </>
 
             {/* Tombol Create Modern */}
