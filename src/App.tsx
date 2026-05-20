@@ -32,11 +32,6 @@ function App() {
       path: "//auth/google/success",
       element: <GoogleCallback />,
     },
-    // {
-    //   path: "/register",
-    //   loader: authLoader,
-    //   element: <Register />,
-    // },
     {
       path: "/reset-password",
       element: <ResetPassword />,

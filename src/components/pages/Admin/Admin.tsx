@@ -10,6 +10,7 @@ import {
   Globe,
   ShieldCheck,
   ShieldAlert,
+  PieChart as LucidePieChart,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import dashboard from "@/services/api/dashboard";
@@ -89,7 +90,6 @@ const AdminDashboard = () => {
     <AdminLayout
       title="Dashboard Admin | E-Portal UIKA"
       desc="Overview Dashboard"
-      userName="Admin UIKA"
     >
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto">
         {/* ── BANNER WELCOME (Modern Gradient) ── */}
@@ -284,7 +284,7 @@ const AdminDashboard = () => {
                       nameKey="role"
                       stroke="none"
                     >
-                      {roleDistributionData.map((entry: any, index: number) => (
+                      {roleDistributionData.map((_: any, index: number) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={CHART_COLORS[index % CHART_COLORS.length]}
@@ -293,7 +293,7 @@ const AdminDashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => [`${value} Akun`, "Total"]}
+                      formatter={(value: any) => [`${value} Akun`, "Total"]}
                       contentStyle={{
                         borderRadius: "12px",
                         border: "none",
@@ -317,7 +317,7 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400">
-                  <PieChart size={32} className="text-gray-200 mb-2" />
+                  <LucidePieChart size={32} className="text-gray-200 mb-2" />
                   <p className="text-sm font-semibold text-gray-500">
                     Data role kosong.
                   </p>

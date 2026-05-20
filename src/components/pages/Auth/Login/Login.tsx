@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,8 +39,7 @@ const slides = [
 ];
 
 export default function Login() {
-  const { handleSubmit, handleLogin, isPendingLogin, errors, control } =
-    useLogin();
+  const { handleSubmit, handleLogin, isPendingLogin, control } = useLogin();
 
   return (
     <AuthLayout title="E-Portal UIKA — Sign In">
