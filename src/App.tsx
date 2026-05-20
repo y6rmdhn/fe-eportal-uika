@@ -12,46 +12,51 @@ import LoginLog from "./components/pages/Admin/LoginLog";
 import Profile from "./components/pages/Profile";
 
 function App() {
-  const router = createBrowserRouter([
+  const router = createBrowserRouter(
+    [
+      {
+        path: "/",
+        loader: mainLoader,
+        element: <Dashboard />,
+      },
+      {
+        path: "/profile",
+        loader: mainLoader,
+        element: <Profile />,
+      },
+      {
+        path: "/login",
+        loader: authLoader,
+        element: <Login />,
+      },
+      {
+        path: "/auth/google/success",
+        element: <GoogleCallback />,
+      },
+      {
+        path: "/reset-password",
+        element: <ResetPassword />,
+      },
+      {
+        path: "/admin",
+        loader: adminLoader,
+        element: <AdminDashboard />,
+      },
+      {
+        path: "/admin/user-management",
+        loader: adminLoader,
+        element: <UserManagement />,
+      },
+      {
+        path: "/admin/log",
+        loader: adminLoader,
+        element: <LoginLog />,
+      },
+    ],
     {
-      path: "/",
-      loader: mainLoader,
-      element: <Dashboard />,
+      basename: "/v2",
     },
-    {
-      path: "/profile",
-      loader: mainLoader,
-      element: <Profile />,
-    },
-    {
-      path: "/login",
-      loader: authLoader,
-      element: <Login />,
-    },
-    {
-      path: "//auth/google/success",
-      element: <GoogleCallback />,
-    },
-    {
-      path: "/reset-password",
-      element: <ResetPassword />,
-    },
-    {
-      path: "/admin",
-      loader: adminLoader,
-      element: <AdminDashboard />,
-    },
-    {
-      path: "/admin/user-management",
-      loader: adminLoader,
-      element: <UserManagement />,
-    },
-    {
-      path: "/admin/log",
-      loader: adminLoader,
-      element: <LoginLog />,
-    },
-  ]);
+  );
 
   return (
     <>
