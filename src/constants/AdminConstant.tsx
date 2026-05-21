@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ActivitySquare } from "lucide-react";
+import { LayoutDashboard, Users, ActivitySquare, Blocks } from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
   {
@@ -18,6 +18,12 @@ export const SIDEBAR_ADMIN = [
     label: "Aktivitas Log",
     href: "/admin/log",
     icon: <ActivitySquare size={20} />,
+  },
+  {
+    key: "app-module",
+    label: "Manajemen Modul",
+    href: "/admin/app-module",
+    icon: <Blocks size={20} />,
   },
 ];
 
@@ -40,5 +46,15 @@ export const HEADER_TABLE_LOGIN_LOG = [
   "Device",
   "Status",
   "Waktu",
+  "Aksi",
+];
+
+export const HEADER_TABLE_APP_MODULE = [
+  "No",
+  "Modul",
+  "URL",
+  "Role",
+  "Urutan",
+  "Status",
   "Aksi",
 ];

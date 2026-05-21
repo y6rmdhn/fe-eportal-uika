@@ -64,6 +64,24 @@ const admin = {
   getActivityLogs(id: string, params?: { type?: string; per_page?: number }) {
     return network.get(`/admins/${id}/activity-logs`, { params });
   },
+  // App Module
+  getAppModules() {
+    return network.get("/admins/app-modules");
+  },
+  createAppModule(payload: FormData) {
+    return network.post("/admins/app-modules", payload);
+  },
+  updateAppModule(id: number, payload: FormData) {
+    payload.append("_method", "PUT");
+
+    return network.post(`/admins/app-modules/${id}`, payload);
+  },
+  deleteAppModule(id: number) {
+    return network.delete(`/admins/app-modules/${id}`);
+  },
+  getMyModules() {
+    return network.get("/my-modules");
+  },
 };
 
 export default admin;

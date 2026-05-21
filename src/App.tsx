@@ -10,6 +10,7 @@ import mainLoader from "./components/layouts/MainLayout/MainLayout.loader";
 import UserManagement from "./components/pages/Admin/UserManagement";
 import LoginLog from "./components/pages/Admin/LoginLog";
 import Profile from "./components/pages/Profile";
+import AppModulePage from "./components/pages/Admin/AppModule";
 
 function App() {
   const router = createBrowserRouter(
@@ -51,6 +52,11 @@ function App() {
         path: "/admin/log",
         loader: adminLoader,
         element: <LoginLog />,
+      },
+      {
+        path: "/admin/app-module",
+        loader: adminLoader,
+        element: <AppModulePage />,
       },
     ],
     {

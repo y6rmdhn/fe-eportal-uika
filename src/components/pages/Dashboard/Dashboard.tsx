@@ -61,46 +61,38 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchItems = async () => {
       setIsLoading(true);
-      setTimeout(() => {
-        const dummyData: PortalItem[] = [
-          {
-            id: 1,
-            title: "SIAKAD",
-            description: "Sistem Informasi Akademik",
-            icon: "https://ui-avatars.com/api/?name=SI&background=059669&color=fff&size=128&bold=true",
-            link: "http://localhost:5174/login",
-            needsSso: true,
-            role_id: "1",
-            appModule_id: "1",
-            unit_id: "1",
-          },
-          {
-            id: 2,
-            title: "SIMPEG",
-            description: "Sistem Kepegawaian",
-            icon: "https://ui-avatars.com/api/?name=SP&background=0284c7&color=fff&size=128&bold=true",
-            link: "http://localhost:5174/login",
-            needsSso: true,
-            role_id: "1",
-            appModule_id: "2",
-          },
-          {
-            id: 3,
-            title: "UCL UIKA",
-            description: "E-Learning System",
-            icon: "https://ui-avatars.com/api/?name=UC&background=ea580c&color=fff&size=128&bold=true",
-            link: "http://localhost:3000/login",
-            needsSso: true,
-            role_id: "1",
-            appModule_id: "3",
-          },
-        ];
-        setItems(dummyData);
+      try {
+        const response = await network.get("/my-modules");
+
+        const apiModules = response.data.data || [];
+
+        const mappedData: PortalItem[] = apiModules.map((mod: any) => ({
+          id: mod.id,
+          title: mod.name,
+          description: mod.description,
+          icon: mod.icon
+            ? `http://localhost:8000/storage/${mod.icon}`
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(mod.name)}&background=059669&color=fff&size=128&bold=true`,
+          link: mod.url || "#",
+          needsSso: true,
+          role_id: userData?.role_id?.toString() || "1",
+          appModule_id: mod.id.toString(),
+          unit_id: "1",
+        }));
+
+        setItems(mappedData);
+      } catch (error) {
+        console.error("Gagal mengambil data modul:", error);
+        toast.error("Gagal memuat daftar aplikasi.");
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
-    fetchItems();
-  }, []);
+
+    if (!isUserLoading && userData) {
+      fetchItems();
+    }
+  }, [isUserLoading, userData]);
 
   const handleBukaAplikasi = async (item: PortalItem) => {
     if (!item.needsSso) {
