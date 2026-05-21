@@ -54,7 +54,8 @@ function App() {
       },
     ],
     {
-      basename: "/v2",
+      // Cek otomatis: Kalau lagi di VPS (production) pakai /v2, kalau di laptop (development) pakai /
+      basename: import.meta.env.MODE === "production" ? "/v2" : "/",
     },
   );
 

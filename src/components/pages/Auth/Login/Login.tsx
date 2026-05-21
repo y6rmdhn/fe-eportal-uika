@@ -18,21 +18,25 @@ import { Autoplay, EffectFade, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/pagination";
+import { Link } from "react-router-dom";
 
 // ASSETS
-const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
+const BASE_URL = import.meta.env.BASE_URL;
+
+// Tinggal gabungin string-nya! (BASE_URL udah ada garis miring akhirnya)
+const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 const GOOGLE_LOGO = "https://tias.ti.ft.uika-bogor.ac.id/img/google.png";
+const API_URL = import.meta.env.VITE_PUBLIC_API_URL;
 
 // DATA SLIDER
 const slides = [
   {
-    image:
-      "/img/ilustrasi-beasiswa-di-universitas-ibn-khaldun-uika-bogor-wii-tpsg.jpg",
+    image: `${BASE_URL}img/ilustrasi-beasiswa-di-universitas-ibn-khaldun-uika-bogor-wii-tpsg.jpg`,
     title: "Pengumuman Pembayaran Kuliah",
     body: "Berdasarkan Pengumuman Rektor UIKA Nomor: 1911/K.11/UIKA/2023 tentang Pembayaran Biaya Perkuliahan Semester GASAL Tahun Akademik 2023/2024.",
   },
   {
-    image: "/img/202502052004-main.cropped_1738760674.jpg",
+    image: `${BASE_URL}img/202502052004-main.cropped_1738760674.jpg`,
     title: "Kalender Akademik Terbaru",
     body: "Berdasarkan SK Rektor UIKA Nomor: 270/KEP/UIKA/2023 tentang Kalender Akademik UIKA Tahun Akademik 2023/2024.",
   },
@@ -162,12 +166,12 @@ export default function Login() {
                       Ingat saya
                     </Label>
                   </div>
-                  <a
-                    href="/reset-password"
+                  <Link
+                    to="/reset-password"
                     className="text-emerald-600 text-sm font-semibold hover:text-emerald-700 transition-colors"
                   >
                     Lupa password?
-                  </a>
+                  </Link>
                 </div>
 
                 <Button
@@ -187,7 +191,7 @@ export default function Login() {
 
               <div className="mt-5 mb-2">
                 <a
-                  href="http://localhost:8000/api/auth/google/redirect"
+                  href={`${API_URL}/auth/google/redirect`}
                   className="flex items-center justify-center gap-3 w-full h-11 bg-white hover:bg-gray-50 text-gray-800 rounded-xl border border-gray-200 shadow-sm transition-all duration-300 text-sm font-semibold"
                 >
                   <img

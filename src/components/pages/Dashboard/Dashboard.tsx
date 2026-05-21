@@ -25,7 +25,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 
 // ASSET LOGO UIKA
-const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
+const BASE_URL = import.meta.env.BASE_URL;
+const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 
 interface PortalItem {
   id: string | number;
