@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
+import { useGetRoles } from "@/hooks/Roles/useRoles";
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -51,6 +52,10 @@ const UserManagement = () => {
     currentFilter,
     handleChangeFilter,
   } = useDataTable();
+
+  // Fetch Roles secara dinamis
+  const { data: rolesData } = useGetRoles();
+  const rolesList = rolesData?.data || [];
 
   // LOGIKA TETAP SAMA SEPERTI KODE KAMU
   const { dataUserManagement, isLoadingUserManagement, refetch } =
@@ -179,9 +184,11 @@ const UserManagement = () => {
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 <SelectItem value="all">Semua role</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="dosen">Dosen</SelectItem>
-                <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
+                {rolesList.map((role: any) => (
+                  <SelectItem key={role.id} value={role.name} className="capitalize">
+                    {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

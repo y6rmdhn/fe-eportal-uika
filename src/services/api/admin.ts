@@ -64,6 +64,88 @@ const admin = {
   getActivityLogs(id: string, params?: { type?: string; per_page?: number }) {
     return network.get(`/admins/${id}/activity-logs`, { params });
   },
+
+  // ─── App Modules ───────────────────────────────────────────────────────────
+  getAppModules() {
+    return network.get("/admins/app-modules");
+  },
+  getAppModule(id: number) {
+    return network.get(`/admins/app-modules/${id}`);
+  },
+  createAppModule(payload: { name: string; url: string }) {
+    return network.post("/admins/app-modules", payload);
+  },
+  updateAppModule(id: number, payload: { name: string; url: string }) {
+    return network.put(`/admins/app-modules/${id}`, payload);
+  },
+  deleteAppModule(id: number) {
+    return network.delete(`/admins/app-modules/${id}`);
+  },
+  resetAppModuleSecret(id: number) {
+    return network.post(`/admins/app-modules/${id}/reset-secret`);
+  },
+
+  // ─── Roles ─────────────────────────────────────────────────────────────────
+  getRoles() {
+    return network.get("/admins/roles");
+  },
+  getRole(id: number) {
+    return network.get(`/admins/roles/${id}`);
+  },
+  createRole(payload: { name: string; guard_name?: string }) {
+    return network.post("/admins/roles", payload);
+  },
+  updateRole(id: number, payload: { name: string; guard_name?: string }) {
+    return network.put(`/admins/roles/${id}`, payload);
+  },
+  deleteRole(id: number) {
+    return network.delete(`/admins/roles/${id}`);
+  },
+
+  // ─── Permissions ───────────────────────────────────────────────────────────
+  getPermissions() {
+    return network.get("/admins/permissions");
+  },
+  getPermission(id: number) {
+    return network.get(`/admins/permissions/${id}`);
+  },
+  createPermission(payload: { name: string; guard_name?: string; appModule_id: number }) {
+    return network.post("/admins/permissions", payload);
+  },
+  bulkCreatePermission(payload: {
+    appModule_id: number;
+    permissions: { name: string; guard_name?: string }[];
+  }) {
+    return network.post("/admins/permissions/bulk", payload);
+  },
+  updatePermission(id: number, payload: { name: string; guard_name?: string; appModule_id: number }) {
+    return network.put(`/admins/permissions/${id}`, payload);
+  },
+  bulkUpdatePermission(payload: {
+    permissions: { id: number; name: string; guard_name?: string; appModule_id?: number }[];
+  }) {
+    return network.put("/admins/permissions/bulk", payload);
+  },
+  deletePermission(id: number) {
+    return network.delete(`/admins/permissions/${id}`);
+  },
+  bulkDeletePermission(payload: { ids: number[] }) {
+    return network.delete("/admins/permissions/bulk", { data: payload });
+  },
+
+  // ─── Role Permissions ──────────────────────────────────────────────────────
+  getRolePermissions(roleId: number) {
+    return network.get("/admins/role-permissions", { params: { role_id: roleId } });
+  },
+  syncRolePermissions(payload: { role_id: number; permission_ids: number[] }) {
+    return network.post("/admins/role-permissions/sync", payload);
+  },
+  assignRolePermissions(payload: { role_id: number; permission_ids: number[] }) {
+    return network.post("/admins/role-permissions/assign", payload);
+  },
+  unassignRolePermissions(payload: { role_id: number; permission_ids: number[] }) {
+    return network.post("/admins/role-permissions/unassign", payload);
+  },
 };
 
 export default admin;

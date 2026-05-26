@@ -7,6 +7,7 @@ import auth from "@/services/api/auth.ts";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import session from "@/utils/session";
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -38,11 +39,14 @@ export const useLogin = () => {
     },
     onSuccess: (data) => {
       if (data.status === 200) {
+        if (data.data.uika_sso_token) {
+          session.setToken(data.data.uika_sso_token);
+        }
         setUser(data.data.user);
 
         toast.success("Login berhasil!");
-        reset();
         navigate("/");
+        reset();
       }
     },
   });

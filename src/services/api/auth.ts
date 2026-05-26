@@ -8,6 +8,9 @@ const auth = {
   getUser() {
     return network.get("/get_user");
   },
+  getMyModules() {
+    return network.get("/my-modules");
+  },
   login(payload: loginForm) {
     return network.post("/auth/login", payload);
   },

@@ -21,11 +21,7 @@ import type {
   UseFormReturn,
 } from "react-hook-form";
 
-const ROLE_LIST = [
-  { label: "Admin", value: "admin" },
-  { label: "Dosen", value: "dosen" },
-  { label: "Mahasiswa", value: "mahasiswa" },
-];
+import { useGetRoles } from "@/hooks/Roles/useRoles";
 
 const STATUS_LIST = [
   { label: "Aktif", value: "true" },
@@ -47,6 +43,14 @@ export default function FormUser<T extends FieldValues>({
   preview?: Preview;
   setPreview?: (preview: Preview) => void;
 }) {
+  const { data: rolesData } = useGetRoles();
+  const roles = rolesData?.data || [];
+  
+  const roleList = roles.map((r: any) => ({
+    label: r.name.charAt(0).toUpperCase() + r.name.slice(1),
+    value: r.name,
+  }));
+
   return (
     <DialogContent className="sm:max-w-[480px] max-h-[90vh]">
       <DialogHeader>
@@ -97,7 +101,7 @@ export default function FormUser<T extends FieldValues>({
               form={form}
               label="Role"
               name={"role" as Path<T>}
-              selectItem={ROLE_LIST}
+              selectItem={roleList}
             />
             <FormSelect
               form={form}

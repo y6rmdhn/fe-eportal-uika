@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ActivitySquare } from "lucide-react";
+import { LayoutDashboard, Users, ActivitySquare, AppWindow, ShieldCheck, Key, Fingerprint } from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
   {
@@ -14,6 +14,30 @@ export const SIDEBAR_ADMIN = [
     icon: <Users size={20} />,
   },
   {
+    key: "app-modules",
+    label: "App Modules",
+    href: "/admin/app-modules",
+    icon: <AppWindow size={20} />,
+  },
+  {
+    key: "roles",
+    label: "Roles",
+    href: "/admin/roles",
+    icon: <ShieldCheck size={20} />,
+  },
+  {
+    key: "permissions",
+    label: "Permissions",
+    href: "/admin/permissions",
+    icon: <Key size={20} />,
+  },
+  {
+    key: "role-permissions",
+    label: "Hak Akses",
+    href: "/admin/role-permissions",
+    icon: <Fingerprint size={20} />,
+  },
+  {
     key: "log",
     label: "Aktivitas Log",
     href: "/admin/log",
@@ -27,7 +51,7 @@ export const HEADER_TABLE_USER = [
   "ID (NPM/NIP/NIDN)", // Menyesuaikan role-nya
   "Role",
   // "Status",
-  "Tanggal Daftar",
+  "Tangal Daftar",
   "Aksi",
 ];
 
@@ -42,3 +66,9 @@ export const HEADER_TABLE_LOGIN_LOG = [
   "Waktu",
   "Aksi",
 ];
+
+export const HEADER_TABLE_APP_MODULE = ["No", "Nama Modul", "URL", "Client Credentials", "Aksi"];
+
+export const HEADER_TABLE_ROLE = ["No", "Nama Role", "Guard", "Aksi"];
+
+export const HEADER_TABLE_PERMISSION = ["No", "Nama Permission", "Guard", "App Module", "Aksi"];

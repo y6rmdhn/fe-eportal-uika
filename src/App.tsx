@@ -10,6 +10,10 @@ import mainLoader from "./components/layouts/MainLayout/MainLayout.loader";
 import UserManagement from "./components/pages/Admin/UserManagement";
 import LoginLog from "./components/pages/Admin/LoginLog";
 import Profile from "./components/pages/Profile";
+import AppModules from "./components/pages/Admin/AppModules";
+import Roles from "./components/pages/Admin/Roles";
+import Permissions from "./components/pages/Admin/Permissions";
+import RolePermissions from "./components/pages/Admin/RolePermissions";
 
 function App() {
   const router = createBrowserRouter([
@@ -50,6 +54,26 @@ function App() {
       path: "/admin/user-management",
       loader: adminLoader,
       element: <UserManagement />,
+    },
+    {
+      path: "/admin/app-modules",
+      loader: adminLoader,
+      element: <AppModules />,
+    },
+    {
+      path: "/admin/roles",
+      loader: adminLoader,
+      element: <Roles />,
+    },
+    {
+      path: "/admin/permissions",
+      loader: adminLoader,
+      element: <Permissions />,
+    },
+    {
+      path: "/admin/role-permissions",
+      loader: adminLoader,
+      element: <RolePermissions />,
     },
     {
       path: "/admin/log",
