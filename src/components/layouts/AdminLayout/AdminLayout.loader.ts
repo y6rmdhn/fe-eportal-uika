@@ -12,7 +12,7 @@ export default async function adminLoader() {
       },
     });
 
-    const isAllowed = dataProfile.role === "admin";
+    const isAllowed = dataProfile.role?.toLowerCase() === "admin";
     if (!isAllowed) return redirect("/");
 
     return dataProfile;

@@ -106,6 +106,10 @@ export default function Dashboard() {
   const isLoading    = isModulesLoading || isUserLoading;
   const roleBadge    = getRoleBadge(userData?.role);
 
+  console.log('modulesResponse:', modulesResponse);
+console.log('isAdmin:', isAdmin);
+console.log('userData:', userData);
+
   // ── Buka aplikasi via SSO redirect ─────────────────────────────────────────
   const handleOpenApp = async (mod: AppModule) => {
     await proceedRedirect(mod, userData?.role_id ?? "1");

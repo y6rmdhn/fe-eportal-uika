@@ -1,5 +1,5 @@
 import admin from "@/services/api/admin";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRef } from "react";
 import toast from "react-hot-toast";
@@ -9,6 +9,7 @@ const useExportImportUser = (
   currentFilter?: string,
 ) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const { mutate: exportUsers, isPending: isPendingExport } = useMutation({
     mutationFn: async () => {
@@ -16,7 +17,6 @@ const useExportImportUser = (
         search: currentSearch,
         role: currentFilter,
       });
-      // Trigger download
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -44,6 +44,7 @@ const useExportImportUser = (
       return response.data;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["user-management"] });
       const failed = data.data?.failed?.length ?? 0;
       if (failed > 0) {
         toast.success(`Import selesai. ${failed} data gagal diimport.`);
@@ -68,6 +69,30 @@ const useExportImportUser = (
     }
   };
 
+  const downloadTemplate = () => {
+    const headers = ["Email", "Role", "NPM", "NIDN"];
+
+    const exampleData = [
+      ["mahasiswa@example.com", "Mahasiswa", "2256232494", ""],
+      ["dosen@example.com", "Dosen", "", "0123456789"],
+    ];
+
+    const csvContent = [
+      headers.join(","),
+      ...exampleData.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "template-import-user.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   return {
     exportUsers,
     isPendingExport,
@@ -76,6 +101,7 @@ const useExportImportUser = (
     fileInputRef,
     handleImportClick,
     handleFileChange,
+    downloadTemplate, // 👇 JANGAN LUPA DI-RETURN
   };
 };
 
