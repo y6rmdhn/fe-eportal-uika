@@ -20,7 +20,19 @@ export const useLogout = () => {
       console.error("Gagal logout di server:", error);
       toast.error("Sesi telah berakhir.");
     },
-    onSettled: () => {
+    onSettled: async () => {
+      // Single Logout — hit logout endpoint semua aplikasi terdaftar
+      const registeredApps = [
+        "http://localhost:3000/api/logout", // TIAS/UCL
+        // tambahin aplikasi lain di sini nanti
+      ];
+
+      await Promise.allSettled(
+        registeredApps.map((url) =>
+          fetch(url, { method: "POST", credentials: "include" }),
+        ),
+      );
+
       session.clearSession();
       window.location.href = "/login";
     },

@@ -7,9 +7,10 @@ export default async function adminLoader() {
     const dataProfile = await queryClient.ensureQueryData({
       queryKey: ["Profile"],
       queryFn: async () => {
-        const result = await auth.getUser(); // kalau 401, langsung ke catch
+        const result = await auth.getUser();
         return result.data.data;
       },
+      staleTime: 5 * 60 * 1000, // cache 5 menit
     });
 
     const isAllowed = dataProfile.role?.toLowerCase() === "admin";

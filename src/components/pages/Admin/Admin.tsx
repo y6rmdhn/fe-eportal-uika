@@ -25,7 +25,14 @@ import {
 } from "recharts";
 
 // Warna Chart disesuaikan dengan Tema UIKA (Nuansa Emerald, Teal, Sky Blue, Amber)
-const CHART_COLORS = ["#059669", "#10b981", "#34d399", "#0ea5e9", "#f59e0b"];
+const CHART_COLORS = [
+  "#059669", // emerald - Mahasiswa
+  "#0ea5e9", // sky blue - Dosen
+  "#f59e0b", // amber - Pegawai
+  "#8b5cf6", // violet - Admin
+  "#ef4444", // red - Super Admin
+  "#ec4899", // pink - lainnya
+];
 
 const AdminDashboard = () => {
   // 1. Fetch Data Stats Summary
@@ -203,7 +210,7 @@ const AdminDashboard = () => {
                           {/* User Info & Details */}
                           <div>
                             <p className="font-bold text-[14px] text-gray-900">
-                              {activity.user?.name || "Unknown User"}
+                              {activity.user?.email || "Unknown User"}
                             </p>
                             <div className="flex items-center gap-3 mt-1 text-[12px] font-medium text-gray-500">
                               <span className="flex items-center gap-1">
@@ -293,7 +300,10 @@ const AdminDashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => [`${value} Akun`, "Total"]}
+                      formatter={(value: number, name: string, props: any) => [
+                        `${value} Akun`,
+                        props.payload.role,
+                      ]}
                       contentStyle={{
                         borderRadius: "12px",
                         border: "none",
