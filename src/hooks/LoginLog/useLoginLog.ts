@@ -36,24 +36,8 @@ const useLoginLog = ({
   const { data: dataStats } = useQuery({
     queryKey: ["login-log-stats"],
     queryFn: async () => {
-      const [all, success, failed] = await Promise.all([
-        admin.getLoginLogs({ currentLimit: 1, currentPage: 1 }),
-        admin.getLoginLogs({
-          currentLimit: 1,
-          currentPage: 1,
-          status: "success",
-        }),
-        admin.getLoginLogs({
-          currentLimit: 1,
-          currentPage: 1,
-          status: "failed",
-        }),
-      ]);
-      return {
-        total: all.data.meta.total,
-        success: success.data.meta.total,
-        failed: failed.data.meta.total,
-      };
+      const response = await admin.getLoginStats();
+      return response.data.data;
     },
   });
 
