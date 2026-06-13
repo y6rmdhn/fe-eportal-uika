@@ -186,6 +186,46 @@ const admin = {
   }) {
     return network.post("/admins/role-permissions/unassign", payload);
   },
+
+  // ── SSO Integration Templates ──────────────────────────────────────────────
+  getSsoTemplates() {
+    return network.get("/admins/sso-keys");
+  },
+  getSsoTemplate(id: number) {
+    return network.get(`/admins/sso-keys/${id}`);
+  },
+  createSsoTemplate(payload: {
+    name: string;
+    category: string;
+    language: string;
+    icon?: string;
+    code_snippet: string;
+    description?: string;
+    dependencies?: string;
+    order?: number;
+    is_active?: boolean;
+  }) {
+    return network.post("/admins/sso-keys", payload);
+  },
+  updateSsoTemplate(
+    id: number,
+    payload: {
+      name?: string;
+      category?: string;
+      language?: string;
+      icon?: string;
+      code_snippet?: string;
+      description?: string;
+      dependencies?: string;
+      order?: number;
+      is_active?: boolean;
+    },
+  ) {
+    return network.put(`/admins/sso-keys/${id}`, payload);
+  },
+  deleteSsoTemplate(id: number) {
+    return network.delete(`/admins/sso-keys/${id}`);
+  },
 };
 
 export default admin;
