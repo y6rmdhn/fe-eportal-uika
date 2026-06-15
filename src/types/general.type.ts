@@ -57,3 +57,14 @@ export type SsoClient = {
   created_at?: string;
   updated_at?: string;
 };
+
+export type AppModuleData = {
+  id: number;
+  name: string;
+  url: string | null;
+  icon: string | null;
+  description: string | null;
+  is_active: boolean;
+  order: number;
+  roles: string[]; // ['admin', 'mahasiswa', 'dosen']
+};

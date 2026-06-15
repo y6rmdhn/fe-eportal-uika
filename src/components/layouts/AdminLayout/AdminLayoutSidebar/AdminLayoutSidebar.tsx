@@ -5,7 +5,9 @@ import type { JSX } from "react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/Auth/useLogout";
 
-const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
+// ASSET LOGO UIKA
+const BASE_URL = import.meta.env.BASE_URL;
+const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 
 interface SidebarItem {
   key: string;
