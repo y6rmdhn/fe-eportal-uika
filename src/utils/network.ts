@@ -10,11 +10,11 @@ const network = axios.create({
 
 network.interceptors.request.use(
   (config) => {
-    // const token = session.getToken();
-    //
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = session.getToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
     return config;
   },

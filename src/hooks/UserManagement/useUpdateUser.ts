@@ -23,18 +23,7 @@ const useUpdateUser = () => {
     id: string;
     payload: updateUserForm;
   }) => {
-    const formData = new FormData();
-
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value);
-      } else {
-        formData.append(key, value ?? "");
-      }
-    });
-
-    const response = await admin.updateUser(id, formData);
-
+    const response = await admin.updateUser(id, payload); // JSON biasa
     return response.data;
   };
 
@@ -43,27 +32,24 @@ const useUpdateUser = () => {
       mutationFn: updateUser,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["user-management"] });
-
         toast.success("Berhasil update user");
       },
       onError(error) {
         if (error instanceof AxiosError) {
-          const message = error.response?.data?.message;
-          toast.error(message || "Terjadi kesalahan server");
+          toast.error(
+            error.response?.data?.message || "Terjadi kesalahan server",
+          );
         } else {
           toast.error(error.message);
         }
       },
     });
 
-  const handleUpdateUser = (id: string, payload: updateUserForm) => {
-    mutateUpdateUser({ id, payload });
-  };
-
   return {
     form,
     isPendingUpdateUser,
-    handleUpdateUser,
+    handleUpdateUser: (id: string, payload: updateUserForm) =>
+      mutateUpdateUser({ id, payload }),
   };
 };
 

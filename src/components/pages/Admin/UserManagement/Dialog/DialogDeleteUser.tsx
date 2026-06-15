@@ -14,8 +14,8 @@ export default function DialogDeleteUser({
   const { handleDeleteUser, isPendingDeleteUser } = useDeleteUser();
 
   const onSubmit = () => {
-    if (currentData?.public_id) {
-      handleDeleteUser(currentData.public_id);
+    if (currentData?.id) {
+      handleDeleteUser(currentData.id);
     }
   };
 

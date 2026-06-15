@@ -11,8 +11,15 @@ const session = {
     const sessionData = localStorage.getItem(SESSION_KEY);
     return sessionData ? JSON.parse(sessionData) : null;
   },
+  setToken(token: string) {
+    localStorage.setItem("token", token);
+  },
+  getToken() {
+    return localStorage.getItem("token") || undefined;
+  },
   clearSession() {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem("token");
 
     Cookies.remove("token");
     Cookies.remove("user_tias");
@@ -21,8 +28,17 @@ const session = {
 
   async isAuthenticated() {
     try {
+      // Cek cache dulu
+      const cached = this.getSession();
+      if (cached) return true;
+
+      // Kalau gak ada, baru hit API
       const res = await auth.getUser();
-      return res.status === 200;
+      if (res.status === 200) {
+        this.setSession(res.data.data);
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
