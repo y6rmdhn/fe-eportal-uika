@@ -8,11 +8,9 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/webp",
 ];
 
-const roleSchema = z.enum(["admin", "mahasiswa", "dosen"], {
-  error: () => ({
-    message: "Pilihan role tidak valid! Pilih admin, mahasiswa, atau dosen.",
-  }),
-});
+const rolesSchema = z
+  .array(z.string())
+  .min(1, { message: "Pilih minimal satu role!" });
 
 export const createUserSchema = z.object({
   name: z
@@ -29,7 +27,7 @@ export const createUserSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(32, "Password is too long"),
-  role: roleSchema,
+  roles: rolesSchema,
   phone: z.string().min(10, { message: "Nomor HP minimal 10 digit!" }).max(15),
   location: z.string().min(1, { message: "Lokasi wajib diisi!" }),
   about_me: z.string().optional(),
@@ -39,6 +37,10 @@ export const createUserSchema = z.object({
   is_active: z.enum(["true", "false"], {
     message: "Status aktif tidak valid!",
   }),
+  unit_id: z.preprocess((val) => {
+    if (val === "" || val === "none" || val === undefined || val === null || val === "null") return null;
+    return Number(val);
+  }, z.number().nullable().optional()),
   image: z
     .any()
     .refine((file) => file instanceof File, {

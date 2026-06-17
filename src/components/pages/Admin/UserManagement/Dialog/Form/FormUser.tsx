@@ -13,15 +13,19 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { Preview } from "@/types/general.type";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
-import type {
-  FieldValues,
-  Path,
-  SubmitHandler,
-  UseFormReturn,
+import {
+  Controller,
+  type FieldValues,
+  type Path,
+  type SubmitHandler,
+  type UseFormReturn,
 } from "react-hook-form";
 
 import { useGetRoles } from "@/hooks/Roles/useRoles";
+import { useGetUnits } from "@/hooks/Units/useUnits";
 
 const STATUS_LIST = [
   { label: "Aktif", value: "true" },
@@ -45,11 +49,17 @@ export default function FormUser<T extends FieldValues>({
 }) {
   const { data: rolesData } = useGetRoles();
   const roles = rolesData?.data || [];
-  
-  const roleList = roles.map((r: any) => ({
-    label: r.name.charAt(0).toUpperCase() + r.name.slice(1),
-    value: r.name,
-  }));
+
+  const { data: unitsData } = useGetUnits();
+  const units = unitsData?.data || [];
+
+  const unitList = [
+    { label: "Tanpa Unit Kerja", value: "none" },
+    ...units.map((u: any) => ({
+      label: `${u.nama_unit} (${u.code})`,
+      value: String(u.id),
+    })),
+  ];
 
   return (
     <DialogContent className="sm:max-w-[480px] max-h-[90vh]">
@@ -97,12 +107,43 @@ export default function FormUser<T extends FieldValues>({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <FormSelect
-              form={form}
-              label="Role"
-              name={"role" as Path<T>}
-              selectItem={roleList}
-            />
+            <div className="flex flex-col gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 h-[100px] overflow-y-auto">
+              <Label className="text-xs font-bold text-gray-500 mb-1">Roles (Pilih min. 1)</Label>
+              <Controller
+                control={form.control}
+                name={"roles" as Path<T>}
+                render={({ field }) => (
+                  <div className="grid grid-cols-2 gap-2">
+                    {roles.map((r: any) => (
+                      <div key={r.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`role-${r.id}`}
+                          checked={field.value?.includes(r.name)}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            const newValue = checked
+                              ? [...currentValue, r.name]
+                              : currentValue.filter((v: string) => v !== r.name);
+                            field.onChange(newValue);
+                          }}
+                        />
+                        <Label
+                          htmlFor={`role-${r.id}`}
+                          className="text-sm font-medium capitalize leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {r.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              />
+              {form.formState.errors.roles && (
+                <span className="text-xs text-rose-500 mt-1 font-medium">
+                  {form.formState.errors.roles.message as string}
+                </span>
+              )}
+            </div>
             <FormSelect
               form={form}
               label="Status aktif"
@@ -110,6 +151,14 @@ export default function FormUser<T extends FieldValues>({
               selectItem={STATUS_LIST}
             />
           </div>
+
+          <FormSelect
+            form={form}
+            label="Unit Kerja (Opsional)"
+            name={"unit_id" as Path<T>}
+            selectItem={unitList}
+            placeholder="Pilih Unit Kerja"
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <FormInput

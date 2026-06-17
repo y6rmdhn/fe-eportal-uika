@@ -17,7 +17,8 @@ const useCreateUser = () => {
       name: "",
       email: "",
       password: "",
-      role: "mahasiswa",
+      roles: [],
+      unit_id: "none",
       phone: "",
       location: "",
       about_me: "",
@@ -36,6 +37,10 @@ const useCreateUser = () => {
     Object.entries(payload).forEach(([key, value]) => {
       if (value instanceof File) {
         formData.append(key, value);
+      } else if (Array.isArray(value)) {
+        value.forEach((val) => {
+          formData.append(`${key}[]`, val);
+        });
       } else {
         formData.append(key, value ?? "");
       }

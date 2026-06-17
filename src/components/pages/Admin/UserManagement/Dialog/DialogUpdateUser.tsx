@@ -43,7 +43,8 @@ export default function DialogUpdateUser({
       form.reset({
         name: currentData.name,
         email: currentData.email,
-        role: currentData.role,
+        roles: currentData.roles || [],
+        unit_id: currentData.unit_id ? String(currentData.unit_id) : "none",
         phone: currentData.phone ? String(currentData.phone) : "",
         location: currentData.location ?? "",
         about_me: currentData.about_me ?? "",
