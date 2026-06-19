@@ -1,7 +1,6 @@
 import network from "@/utils/network.ts";
 import type {
   loginForm,
-  createUserForm,
 } from "@/validations/authValidation.ts";
 
 const auth = {
@@ -14,9 +13,17 @@ const auth = {
   login(payload: loginForm) {
     return network.post("/auth/login", payload);
   },
-  register(payload: createUserForm) {
+  register(payload: {
+    email: string;
+    password: string;
+    password_confirmation: string;
+    role: string;
+    nidn?: string;
+    npm?: string;
+    nip?: string;
+}) {
     return network.post("/register", payload);
-  },
+},
   logout() {
     return network.post("/logout");
   },
@@ -32,11 +39,20 @@ const auth = {
     return network.post("/password/reset", payload);
   },
   redirectToApp(roleId: string, appModuleId: string) {
-        return network.post("/sso/redirect-to-app", {
-            role_id:      roleId,
-            appModule_id: appModuleId,
-        });
-    },
+    return network.post("/sso/redirect-to-app", {
+      role_id: roleId,
+      appModule_id: appModuleId,
+    });
+  },
+  validateNidn(nidn: string) {
+    return network.get("/validate/nidn", { params: { nidn } });
+  },
+  validateNip(nip: string) {
+    return network.get("/validate/nip", { params: { nip } });
+  },
+  validateNpm(npm: string) {
+    return network.get("/validate/npm", { params: { npm } });
+  },
 };
 
 export default auth;

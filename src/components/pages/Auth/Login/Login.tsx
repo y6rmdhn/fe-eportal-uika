@@ -204,7 +204,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* <div className="w-full text-center mt-4 pt-4 border-t border-gray-50 shrink-0">
+            <div className="w-full text-center mt-4 pt-4 border-t border-gray-50 shrink-0">
               <p className="text-gray-600 text-sm">
                 Belum memiliki akun?{" "}
                 <a
@@ -214,7 +214,7 @@ export default function Login() {
                   Daftar di sini
                 </a>
               </p>
-            </div> */}
+            </div>
           </div>
 
           {/* ── RIGHT PANEL (Swiper Slider) ── */}

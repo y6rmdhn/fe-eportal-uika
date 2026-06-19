@@ -15,6 +15,7 @@ import Roles from "./components/pages/Admin/Roles";
 import Permissions from "./components/pages/Admin/Permissions";
 import RolePermissions from "./components/pages/Admin/RolePermissions";
 import SsoKeys from "./components/pages/Admin/SsoKeys";
+import Register from "./components/pages/Auth/Register";
 
 function App() {
   const router = createBrowserRouter([
@@ -34,14 +35,13 @@ function App() {
       element: <Login />,
     },
     {
-      path: "//auth/google/success",
+      path: "/auth/google/success",
       element: <GoogleCallback />,
     },
-    // {
-    //   path: "/register",
-    //   loader: authLoader,
-    //   element: <Register />,
-    // },
+    {
+      path: "/register",
+      element: <Register />,
+    },
     {
       path: "/reset-password",
       element: <ResetPassword />,
