@@ -8,6 +8,7 @@ export default async function mainLoader() {
     const dataProfile = await queryClient.ensureQueryData({
       queryKey: ["Profile"],
       queryFn: () => auth.getUser().then((r) => r.data.data),
+      staleTime: 5 * 60 * 1000, // cache 5 menit
     });
     return dataProfile;
   } catch {

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { useLoaderData } from "react-router-dom";
 
 const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
 
@@ -81,15 +82,8 @@ export default function Dashboard() {
   const { handleLogout, isPendingLogout } = useLogout();
   const navigate = useNavigate();
 
-  // ── Fetch user ──────────────────────────────────────────────────────────────
-  const { data: userResponse, isLoading: isUserLoading } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const result = await auth.getUser();
-      return result.data;
-    },
-  });
-  const userData = userResponse?.data;
+  const userData = useLoaderData() as any;
+  const isUserLoading = false;
 
   // ── Fetch modul sesuai role/permission user yang login ──────────────────────
   const { data: modulesResponse, isLoading: isModulesLoading } = useQuery({
@@ -101,10 +95,14 @@ export default function Dashboard() {
     staleTime: 1000 * 60 * 5, // cache 5 menit
   });
 
-  const modules      = modulesResponse?.modules ?? [];
-  const isAdmin      = modulesResponse?.is_admin ?? false;
-  const isLoading    = isModulesLoading || isUserLoading;
-  const roleBadge    = getRoleBadge(userData?.role);
+  const modules = modulesResponse?.modules ?? [];
+  const isAdmin = modulesResponse?.is_admin ?? false;
+  const isLoading = isModulesLoading || isUserLoading;
+  const roleBadge = getRoleBadge(userData?.role);
+
+  console.log("modulesResponse:", modulesResponse);
+  console.log("isAdmin:", isAdmin);
+  console.log("userData:", userData);
 
   // ── Buka aplikasi via SSO redirect ─────────────────────────────────────────
   const handleOpenApp = async (mod: AppModule) => {
@@ -116,9 +114,9 @@ export default function Dashboard() {
     try {
       const response = await network.get("/sso/redirect", {
         params: {
-          target_url:   mod.url,
+          target_url: mod.url,
           appModule_id: mod.id,
-          role_id:      roleId,
+          role_id: roleId,
         },
         withCredentials: true,
       });
@@ -150,18 +148,25 @@ export default function Dashboard() {
       {/* ── Main Container ── */}
       <div className="relative z-10 w-full max-w-6xl h-full max-h-[760px] flex flex-col">
         <div className="w-full h-full flex flex-col bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.10)] border border-white overflow-hidden">
-
           {/* ═══ HEADER ═══════════════════════════════════════════════════════ */}
           <div className="px-6 sm:px-8 py-4 flex justify-between items-center border-b border-gray-100/80 bg-white/60 backdrop-blur-sm shrink-0">
             {/* Logo + title */}
-            <a href="/" className="flex items-center gap-3.5 hover:opacity-90 transition-opacity">
-              <img src={LOGO} alt="Logo UIKA" className="h-10 w-auto object-contain drop-shadow-sm" />
+            <a
+              href="/"
+              className="flex items-center gap-3.5 hover:opacity-90 transition-opacity"
+            >
+              <img
+                src={LOGO}
+                alt="Logo UIKA"
+                className="h-10 w-auto object-contain drop-shadow-sm"
+              />
               <div>
                 <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-[0.2em] leading-none">
                   Universitas Ibn Khaldun
                 </p>
                 <h1 className="text-xl font-extrabold tracking-tight text-gray-900 leading-tight mt-0.5">
-                  E-PORTAL <span className="text-emerald-500 font-black">SSO</span>
+                  E-PORTAL{" "}
+                  <span className="text-emerald-500 font-black">SSO</span>
                 </h1>
               </div>
             </a>
@@ -171,27 +176,44 @@ export default function Dashboard() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 bg-gray-50/80 hover:bg-gray-100/80 px-3 py-2 rounded-2xl border border-gray-100 transition-all hover:shadow-sm">
                   <Avatar className="h-8 w-8 rounded-full ring-2 ring-emerald-100">
-                    <AvatarImage src={userData?.image} alt={userData?.name} className="object-cover" />
+                    <AvatarImage
+                      src={userData?.image}
+                      alt={userData?.name}
+                      className="object-cover"
+                    />
                     <AvatarFallback className="bg-emerald-600 text-white font-extrabold text-sm">
                       {userData?.name?.charAt(0).toUpperCase() ?? "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden sm:flex flex-col items-start">
                     <span className="text-sm font-bold text-gray-800 leading-none truncate max-w-[140px]">
-                      {isUserLoading ? "Memuat..." : userData?.name ?? "Pengguna"}
+                      {isUserLoading
+                        ? "Memuat..."
+                        : (userData?.name ?? "Pengguna")}
                     </span>
-                    <span className={`text-[10px] font-semibold mt-0.5 px-1.5 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}>
+                    <span
+                      className={`text-[10px] font-semibold mt-0.5 px-1.5 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}
+                    >
                       {roleBadge.label}
                     </span>
                   </div>
                 </button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl border-gray-100 shadow-xl p-1">
+              <DropdownMenuContent
+                align="end"
+                className="w-56 rounded-2xl border-gray-100 shadow-xl p-1"
+              >
                 <DropdownMenuLabel className="px-3 py-2.5">
-                  <p className="font-bold text-gray-900 text-sm truncate">{userData?.name}</p>
-                  <p className="text-xs text-gray-400 font-normal truncate mt-0.5">{userData?.email}</p>
-                  <span className={`inline-block text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}>
+                  <p className="font-bold text-gray-900 text-sm truncate">
+                    {userData?.name}
+                  </p>
+                  <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
+                    {userData?.email}
+                  </p>
+                  <span
+                    className={`inline-block text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}
+                  >
                     {roleBadge.label}
                   </span>
                 </DropdownMenuLabel>
@@ -219,7 +241,8 @@ export default function Dashboard() {
                   disabled={isPendingLogout}
                   className="gap-2 cursor-pointer rounded-xl mx-0.5 mb-0.5 font-medium text-rose-600 focus:text-rose-600 focus:bg-rose-50"
                 >
-                  <LogOut size={15} /> {isPendingLogout ? "Keluar..." : "Logout"}
+                  <LogOut size={15} />{" "}
+                  {isPendingLogout ? "Keluar..." : "Logout"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -236,7 +259,9 @@ export default function Dashboard() {
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
                   Selamat Datang,{" "}
                   <span className="text-emerald-600">
-                    {isUserLoading ? "..." : (userData?.name?.split(" ")[0] ?? "Anda")}
+                    {isUserLoading
+                      ? "..."
+                      : (userData?.name?.split(" ")[0] ?? "Anda")}
                   </span>{" "}
                   👋
                 </h2>
@@ -269,7 +294,6 @@ export default function Dashboard() {
           <div className="flex-1 overflow-hidden px-6 sm:px-8 pb-8">
             <ScrollArea className="h-full w-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-1 pb-6">
-
                 {/* ── Loading Skeleton ── */}
                 {isLoading &&
                   Array.from({ length: 8 }).map((_, idx) => (
@@ -289,9 +313,12 @@ export default function Dashboard() {
                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-5 shadow-sm border border-gray-100">
                       <LayoutGrid className="text-gray-300" size={30} />
                     </div>
-                    <p className="text-gray-600 font-bold text-base mb-1">Tidak ada aplikasi tersedia</p>
+                    <p className="text-gray-600 font-bold text-base mb-1">
+                      Tidak ada aplikasi tersedia
+                    </p>
                     <p className="text-gray-400 text-sm text-center max-w-xs">
-                      Akunmu belum memiliki akses ke aplikasi manapun. Hubungi administrator.
+                      Akunmu belum memiliki akses ke aplikasi manapun. Hubungi
+                      administrator.
                     </p>
                   </div>
                 )}
@@ -299,9 +326,10 @@ export default function Dashboard() {
                 {/* ── Module Cards ── */}
                 {!isLoading &&
                   modules.map((mod, idx) => {
-                    const gradient = MODULE_GRADIENTS[idx % MODULE_GRADIENTS.length];
+                    const gradient =
+                      MODULE_GRADIENTS[idx % MODULE_GRADIENTS.length];
                     const isOpening = loadingApp === mod.id;
-                    const initials  = getInitials(mod.name);
+                    const initials = getInitials(mod.name);
 
                     return (
                       <button
@@ -313,12 +341,18 @@ export default function Dashboard() {
                           transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_-10px_var(--mod-shadow)]
                           hover:border-transparent overflow-hidden
                           ${isOpening ? "opacity-70 cursor-wait scale-95" : "cursor-pointer hover:scale-[1.02]"}`}
-                        style={{ "--mod-shadow": gradient.shadow } as React.CSSProperties}
+                        style={
+                          {
+                            "--mod-shadow": gradient.shadow,
+                          } as React.CSSProperties
+                        }
                       >
                         {/* Hover glow overlay */}
                         <div
                           className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-3xl"
-                          style={{ background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})` }}
+                          style={{
+                            background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+                          }}
                         />
 
                         {/* Icon box */}
@@ -353,7 +387,9 @@ export default function Dashboard() {
                           {!isOpening && (
                             <div
                               className="rounded-full p-1.5 text-white"
-                              style={{ background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})` }}
+                              style={{
+                                background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+                              }}
                             >
                               <ArrowRight size={11} strokeWidth={3} />
                             </div>
@@ -369,15 +405,16 @@ export default function Dashboard() {
           {/* ═══ FOOTER ════════════════════════════════════════════════════════ */}
           <div className="shrink-0 px-8 py-3 border-t border-gray-100/80 bg-white/50 flex items-center justify-between">
             <p className="text-[11px] text-gray-400 font-medium">
-              © {new Date().getFullYear()} Universitas Ibn Khaldun Bogor — E-Portal SSO
+              © {new Date().getFullYear()} Universitas Ibn Khaldun Bogor —
+              E-Portal SSO
             </p>
             {!isLoading && (
               <p className="text-[11px] text-gray-400 font-medium">
-                {modules.length} dari {isAdmin ? "semua" : "hak akses kamu"} tersedia
+                {modules.length} dari {isAdmin ? "semua" : "hak akses kamu"}{" "}
+                tersedia
               </p>
             )}
           </div>
-
         </div>
       </div>
     </section>

@@ -1,20 +1,27 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import auth from "@/services/api/auth";
 import toast from "react-hot-toast";
+import network from "@/utils/network";
+import session from "@/utils/session";
 
 export default function GoogleCallback() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
   useEffect(() => {
-    auth
-      .getUser()
+    // Step 1: Exchange cookie jadi token
+    network
+      .get("/auth/token-from-cookie", { withCredentials: true })
       .then((res) => {
-        const userData = res.data.data;
-        setUser(userData);
-        toast.success(`Selamat datang, ${userData.name}!`);
+        const { uika_sso_token, user } = res.data.data;
+
+        // Simpan token ke localStorage biar interceptor bisa pakai
+        session.setToken(uika_sso_token);
+        session.setSession(user);
+        setUser(user);
+
+        toast.success(`Selamat datang, ${user.email}!`);
         navigate("/", { replace: true });
       })
       .catch(() => {

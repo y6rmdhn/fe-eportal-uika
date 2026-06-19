@@ -4,22 +4,15 @@ export type Preview = {
 };
 
 // types/general.type.ts (atau userManagement.type.ts)
-export type UserData = {
-  id: number;
-  public_id: string;
-  name: string;
+export interface UserData {
+  id: string;
   email: string;
-  role: "admin" | "mahasiswa" | "dosen";
-  phone: string;
-  location: string;
-  about_me?: string;
+  role: string;
   nidn?: string;
-  nip?: string;
   npm?: string;
-  is_active: boolean;
-  image?: string;
+  isverified: boolean;
   created_at: string;
-};
+}
 
 export type AppModule = {
   id: number;
@@ -65,3 +58,13 @@ export type SsoClient = {
   updated_at?: string;
 };
 
+export type AppModuleData = {
+  id: number;
+  name: string;
+  url: string | null;
+  icon: string | null;
+  description: string | null;
+  is_active: boolean;
+  order: number;
+  roles: string[]; // ['admin', 'mahasiswa', 'dosen']
+};

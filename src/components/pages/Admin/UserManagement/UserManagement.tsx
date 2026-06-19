@@ -6,17 +6,8 @@ import { Input } from "@/components/ui/input";
 import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
-import { useGetRoles } from "@/hooks/Roles/useRoles";
 import { useMemo, useState } from "react";
-import {
-  Search,
-  Plus,
-  Edit2,
-  Trash2,
-  KeyRound,
-  Download,
-  Upload,
-} from "lucide-react";
+import { Search, Plus, Edit2, Trash2, KeyRound, Download } from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
@@ -31,6 +22,7 @@ import {
 import DialogResetPassword from "./Dialog/DialogResetPassword";
 import useExportImportUser from "@/hooks/UserManagement/useExportImportUser";
 import { Spinner } from "@/components/ui/spinner";
+import DialogImportUser from "./Dialog/DialogImportUser";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
@@ -53,10 +45,6 @@ const UserManagement = () => {
     handleChangeFilter,
   } = useDataTable();
 
-  // Fetch Roles secara dinamis
-  const { data: rolesData } = useGetRoles();
-  const rolesList = rolesData?.data || [];
-
   // LOGIKA TETAP SAMA SEPERTI KODE KAMU
   const { dataUserManagement, isLoadingUserManagement, refetch } =
     useUserManagement({
@@ -70,84 +58,74 @@ const UserManagement = () => {
     exportUsers,
     isPendingExport,
     isPendingImport,
-    fileInputRef,
-    handleImportClick,
     handleFileChange,
+    downloadTemplate,
   } = useExportImportUser(currentSearch, currentFilter);
 
   const filteredData = useMemo(() => {
     return (dataUserManagement?.data || []).map(
       (user: UserData, index: number) => {
-        // PERBAGUS TAMPILAN BARIS TABEL
         return [
-          // 1. Nomor
           <span key={`no-${index}`} className="font-medium text-gray-500">
             {currentLimit * (currentPage - 1) + index + 1}
           </span>,
 
-          // 2. Info User (Nama & Email bertumpuk)
-          <div key={`info-${index}`} className="flex flex-col py-1">
-            <p className="font-bold text-[14px] text-gray-900 leading-tight">
-              {user.name}
-            </p>
-            <p className="text-xs font-medium text-gray-500 mt-0.5">
-              {user.email}
-            </p>
-          </div>,
+          // Email
+          <p
+            key={`email-${index}`}
+            className="font-bold text-[14px] text-gray-900"
+          >
+            {user.email}
+          </p>,
 
-          // 3. ID (NIP/NPM/NIDN) - Dibikin ala badge tipis
+          // NIDN / NPM
           <span
             key={`id-${index}`}
             className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
           >
-            {user.nip || user.npm || user.nidn || "-"}
+            {user.nidn || user.npm || "-"}
           </span>,
 
-          // 4. Role - Badge warna hijau emerald
+          // Role
           <span
             key={`role-${index}`}
-            className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 capitalize border border-emerald-100 tracking-wide"
+            className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
           >
             {user.role}
           </span>,
 
-          // 5. Tanggal Daftar
+          // Tanggal
           <span
             key={`date-${index}`}
             className="text-sm text-gray-600 font-medium"
           >
-            {user.created_at.split(" ")[0]}
+            {user.created_at?.split("T")[0]}
           </span>,
 
-          // 6. Aksi (Hanya Icon Edit dan Hapus)
+          // Aksi
           <div key={`action-${index}`} className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
-              title="Edit"
+              className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-lg"
               onClick={() => setSelectedAction({ data: user, type: "update" })}
             >
               <Edit2 size={16} strokeWidth={2.5} />
             </Button>
-
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-amber-600 hover:bg-amber-50 hover:text-amber-700 rounded-lg transition-colors"
-              title="Reset Password"
+              className="h-8 w-8 text-amber-600 hover:bg-amber-50 rounded-lg"
               onClick={() =>
                 setSelectedAction({ data: user, type: "reset-password" })
               }
             >
               <KeyRound size={16} strokeWidth={2.5} />
             </Button>
-
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-lg transition-colors"
-              title="Hapus"
+              className="h-8 w-8 text-rose-600 hover:bg-rose-50 rounded-lg"
               onClick={() => setSelectedAction({ data: user, type: "delete" })}
             >
               <Trash2 size={16} strokeWidth={2.5} />
@@ -184,11 +162,9 @@ const UserManagement = () => {
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 <SelectItem value="all">Semua role</SelectItem>
-                {rolesList.map((role: any) => (
-                  <SelectItem key={role.id} value={role.name} className="capitalize">
-                    {role.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
+                <SelectItem value="Dosen">Dosen</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
               </SelectContent>
             </Select>
 
@@ -203,30 +179,11 @@ const UserManagement = () => {
 
             <>
               {/* Hidden file input untuk import */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                className="hidden"
-                onChange={handleFileChange}
+              <DialogImportUser
+                isPendingImport={isPendingImport}
+                handleFileChange={handleFileChange}
+                downloadTemplate={downloadTemplate}
               />
-
-              {/* Tombol Import */}
-              <Button
-                variant="outline"
-                className="h-11 rounded-xl border-gray-200 font-bold px-4"
-                onClick={handleImportClick}
-                disabled={isPendingImport}
-              >
-                {isPendingImport ? (
-                  <Spinner />
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-1.5" />
-                    Import
-                  </>
-                )}
-              </Button>
 
               {/* Tombol Export */}
               <Button

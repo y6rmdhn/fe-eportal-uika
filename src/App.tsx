@@ -14,6 +14,7 @@ import AppModules from "./components/pages/Admin/AppModules";
 import Roles from "./components/pages/Admin/Roles";
 import Permissions from "./components/pages/Admin/Permissions";
 import RolePermissions from "./components/pages/Admin/RolePermissions";
+import SsoKeys from "./components/pages/Admin/SsoKeys";
 
 function App() {
   const router = createBrowserRouter([
@@ -79,6 +80,11 @@ function App() {
       path: "/admin/log",
       loader: adminLoader,
       element: <LoginLog />,
+    },
+    {
+      path: "/admin/sso-keys",
+      loader: adminLoader,
+      element: <SsoKeys />,
     },
   ]);
 

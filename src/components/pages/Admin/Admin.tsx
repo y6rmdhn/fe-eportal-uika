@@ -10,6 +10,7 @@ import {
   Globe,
   ShieldCheck,
   ShieldAlert,
+  PieChart as LucidePieChart,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import dashboard from "@/services/api/dashboard";
@@ -25,7 +26,14 @@ import {
 } from "recharts";
 
 // Warna Chart disesuaikan dengan Tema UIKA (Nuansa Emerald, Teal, Sky Blue, Amber)
-const CHART_COLORS = ["#059669", "#10b981", "#34d399", "#0ea5e9", "#f59e0b"];
+const CHART_COLORS = [
+  "#059669", // emerald - Mahasiswa
+  "#0ea5e9", // sky blue - Dosen
+  "#f59e0b", // amber - Pegawai
+  "#8b5cf6", // violet - Admin
+  "#ef4444", // red - Super Admin
+  "#ec4899", // pink - lainnya
+];
 
 const AdminDashboard = () => {
   // 1. Fetch Data Stats Summary
@@ -89,7 +97,6 @@ const AdminDashboard = () => {
     <AdminLayout
       title="Dashboard Admin | E-Portal UIKA"
       desc="Overview Dashboard"
-      userName="Admin UIKA"
     >
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto">
         {/* ── BANNER WELCOME (Modern Gradient) ── */}
@@ -203,7 +210,7 @@ const AdminDashboard = () => {
                           {/* User Info & Details */}
                           <div>
                             <p className="font-bold text-[14px] text-gray-900">
-                              {activity.user?.name || "Unknown User"}
+                              {activity.user?.email || "Unknown User"}
                             </p>
                             <div className="flex items-center gap-3 mt-1 text-[12px] font-medium text-gray-500">
                               <span className="flex items-center gap-1">
@@ -284,7 +291,7 @@ const AdminDashboard = () => {
                       nameKey="role"
                       stroke="none"
                     >
-                      {roleDistributionData.map((entry: any, index: number) => (
+                      {roleDistributionData.map((_: any, index: number) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={CHART_COLORS[index % CHART_COLORS.length]}
@@ -293,7 +300,10 @@ const AdminDashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => [`${value} Akun`, "Total"]}
+                      formatter={(value: number, name: string, props: any) => [
+                        `${value} Akun`,
+                        props.payload.role,
+                      ]}
                       contentStyle={{
                         borderRadius: "12px",
                         border: "none",
@@ -317,7 +327,7 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400">
-                  <PieChart size={32} className="text-gray-200 mb-2" />
+                  <LucidePieChart size={32} className="text-gray-200 mb-2" />
                   <p className="text-sm font-semibold text-gray-500">
                     Data role kosong.
                   </p>

@@ -14,40 +14,17 @@ const useCreateUser = () => {
 
   const form = useForm<createUserForm>({
     defaultValues: {
-      name: "",
       email: "",
       password: "",
-      roles: [],
-      unit_id: "none",
-      phone: "",
-      location: "",
-      about_me: "",
+      role: "Mahasiswa",
       nidn: "",
-      nip: "",
       npm: "",
-      is_active: "true",
-      image: undefined,
     },
     resolver: zodResolver(createUserSchema),
   });
 
   const createUser = async (payload: createUserForm) => {
-    const formData = new FormData();
-
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value instanceof File) {
-        formData.append(key, value);
-      } else if (Array.isArray(value)) {
-        value.forEach((val) => {
-          formData.append(`${key}[]`, val);
-        });
-      } else {
-        formData.append(key, value ?? "");
-      }
-    });
-
-    const response = await admin.createUser(formData);
-
+    const response = await admin.createUser(payload); // JSON biasa, bukan FormData
     return response.data;
   };
 
@@ -57,28 +34,20 @@ const useCreateUser = () => {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["user-management"] });
         form.reset();
-
         toast.success("Berhasil membuat user baru");
       },
       onError(error) {
         if (error instanceof AxiosError) {
-          const message = error.response?.data?.message;
-          toast.error(message || "Terjadi kesalahan server");
+          toast.error(
+            error.response?.data?.message || "Terjadi kesalahan server",
+          );
         } else {
           toast.error(error.message);
         }
       },
     });
 
-  const handleCreateUser = (payload: createUserForm) => {
-    mutateCreateUser(payload);
-  };
-
-  return {
-    form,
-    isPendingCreateUser,
-    handleCreateUser,
-  };
+  return { form, isPendingCreateUser, handleCreateUser: mutateCreateUser };
 };
 
 export default useCreateUser;

@@ -1,4 +1,13 @@
-import { LayoutDashboard, Users, ActivitySquare, AppWindow, ShieldCheck, Key, Fingerprint } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  ActivitySquare,
+  AppWindow,
+  ShieldCheck,
+  Key,
+  Fingerprint,
+  Code2,
+} from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
   {
@@ -43,6 +52,12 @@ export const SIDEBAR_ADMIN = [
     href: "/admin/log",
     icon: <ActivitySquare size={20} />,
   },
+  {
+    key: "sso-keys",
+    label: "SSO Integration",
+    href: "/admin/sso-keys",
+    icon: <Code2 size={20} />,
+  },
 ];
 
 export const HEADER_TABLE_USER = [
@@ -67,8 +82,20 @@ export const HEADER_TABLE_LOGIN_LOG = [
   "Aksi",
 ];
 
-export const HEADER_TABLE_APP_MODULE = ["No", "Nama Modul", "URL", "Client Credentials", "Aksi"];
+export const HEADER_TABLE_APP_MODULE = [
+  "No",
+  "Nama Modul",
+  "URL",
+  "Client Credentials",
+  "Aksi",
+];
 
 export const HEADER_TABLE_ROLE = ["No", "Nama Role", "Guard", "Aksi"];
 
-export const HEADER_TABLE_PERMISSION = ["No", "Nama Permission", "Guard", "App Module", "Aksi"];
+export const HEADER_TABLE_PERMISSION = [
+  "No",
+  "Nama Permission",
+  "Guard",
+  "App Module",
+  "Aksi",
+];

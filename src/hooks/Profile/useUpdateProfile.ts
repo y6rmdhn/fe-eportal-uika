@@ -15,7 +15,7 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 export const updateProfileSchema = z.object({
-  phone: z.coerce.string().max(20).optional().or(z.literal("")),
+  phone: z.string().max(20).optional().or(z.literal("")),
   location: z.string().max(255).optional().or(z.literal("")),
   about_me: z.string().optional().or(z.literal("")),
   image: z

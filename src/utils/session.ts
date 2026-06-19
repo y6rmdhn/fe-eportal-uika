@@ -28,8 +28,17 @@ const session = {
 
   async isAuthenticated() {
     try {
+      // Cek cache dulu
+      const cached = this.getSession();
+      if (cached) return true;
+
+      // Kalau gak ada, baru hit API
       const res = await auth.getUser();
-      return res.status === 200;
+      if (res.status === 200) {
+        this.setSession(res.data.data);
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
