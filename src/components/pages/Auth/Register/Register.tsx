@@ -41,30 +41,63 @@ const slides = [
 const ROLES = [
   {
     key: "Mahasiswa",
+    sendAsRole: "Mahasiswa",
     label: "Mahasiswa",
     desc: "Mahasiswa aktif UIKA",
     icon: <GraduationCap size={28} className="text-purple-600" />,
     idLabel: "NPM",
     idKey: "npm",
     placeholder: "Nomor Pokok Mahasiswa",
+    skipValidation: false,
+    formType: "simple",
   },
   {
     key: "Dosen",
+    sendAsRole: "Dosen",
     label: "Dosen",
     desc: "Tenaga pengajar & peneliti UIKA",
     icon: <BookUser size={28} className="text-emerald-600" />,
     idLabel: "NIDN",
     idKey: "nidn",
     placeholder: "Nomor Induk Dosen Nasional",
+    skipValidation: false,
+    formType: "simple",
   },
   {
     key: "Pegawai",
+    sendAsRole: "Pegawai",
     label: "Pegawai",
     desc: "Staff & tenaga kependidikan UIKA",
     icon: <BookUser size={28} className="text-blue-600" />,
     idLabel: "NIP",
     idKey: "nip",
     placeholder: "Nomor Induk Pegawai",
+    skipValidation: false,
+    formType: "simple",
+  },
+  {
+    key: "Mahasiswa_PMM",
+    sendAsRole: "Mahasiswa",
+    label: "Mahasiswa PMM",
+    desc: "Mahasiswa pertukaran dari luar UIKA",
+    icon: <GraduationCap size={28} className="text-orange-600" />,
+    idLabel: "NPM",
+    idKey: "npm",
+    placeholder: "NPM sementara dari kampus",
+    skipValidation: true,
+    formType: "simple",
+  },
+  {
+    key: "Dosen_Ext",
+    sendAsRole: "Dosen_Ext",
+    label: "Dosen Eksternal",
+    desc: "Dosen tamu / eksternal non-UIKA",
+    icon: <BookUser size={28} className="text-rose-600" />,
+    idLabel: "",
+    idKey: "",
+    placeholder: "",
+    skipValidation: true,
+    formType: "dosenExt", // ← form lengkap
   },
 ];
 
@@ -92,49 +125,95 @@ export default function Register() {
     password_confirmation: "",
   });
 
+  // Field tambahan khusus Dosen Eksternal
+  const [extForm, setExtForm] = useState({
+    nama_lengkap: "",
+    jenkel: "",
+    tanggal_lahir: "",
+    tempat_lahir: "",
+    agama: "",
+    no_hp: "",
+    nik: "",
+    instansi: "",
+  });
+
   // Step 1 — Pilih Role
   const handleSelectRole = (role: (typeof ROLES)[0]) => {
     setSelectedRole(role);
-    setStep(2);
+    setIdValue("");
+    setValidatedData(null);
+    setStep(role.skipValidation ? 3 : 2);
   };
 
-  // Step 2 — Validasi NIDN/NIP
+  // Step 2 — Validasi NIDN/NIP/NPM (role internal UIKA saja)
   const handleValidate = async () => {
-      if (!idValue.trim()) {
-          toast.error(`${selectedRole?.idLabel} wajib diisi.`);
-          return;
+    if (!idValue.trim()) {
+      toast.error(`${selectedRole?.idLabel} wajib diisi.`);
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      let res;
+      if (selectedRole?.key === "Mahasiswa") {
+        res = await auth.validateNpm(idValue.trim());
+      } else if (selectedRole?.key === "Pegawai") {
+        res = await auth.validateNip(idValue.trim());
+      } else {
+        res = await auth.validateNidn(idValue.trim());
       }
 
-      setIsValidating(true);
-      try {
-          let res;
-          if (selectedRole?.key === "Mahasiswa") {
-              res = await auth.validateNpm(idValue.trim());
-          } else if (selectedRole?.key === "Pegawai") {
-              res = await auth.validateNip(idValue.trim());
-          } else {
-              res = await auth.validateNidn(idValue.trim());
-          }
+      const data = res.data;
 
-          const data = res.data;
-
-          if (data.valid) {
-              setValidatedData(data.data);
-              toast.success(`${selectedRole?.idLabel} valid! Selamat datang, ${data.data.nama}`);
-              setStep(3);
-          } else {
-              toast.error(data.message || `${selectedRole?.idLabel} tidak ditemukan.`);
-          }
-      } catch (err: any) {
-          const msg = err.response?.data?.message || `${selectedRole?.idLabel} tidak ditemukan di sistem.`;
-          toast.error(msg);
-      } finally {
-          setIsValidating(false);
+      if (data.valid) {
+        setValidatedData(data.data);
+        toast.success(
+          `${selectedRole?.idLabel} valid! Selamat datang, ${data.data.nama}`,
+        );
+        setStep(3);
+      } else {
+        toast.error(
+          data.message || `${selectedRole?.idLabel} tidak ditemukan.`,
+        );
       }
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        `${selectedRole?.idLabel} tidak ditemukan di sistem.`;
+      toast.error(msg);
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   // Step 3 — Register
   const handleRegister = async () => {
+    // Validasi field id untuk role simple skipValidation (PMM)
+    if (
+      selectedRole?.formType === "simple" &&
+      selectedRole?.skipValidation &&
+      selectedRole?.idKey &&
+      !idValue.trim()
+    ) {
+      // NPM PMM bersifat opsional, jadi tidak divalidasi wajib di sini
+    }
+
+    // Validasi field wajib untuk Dosen Eksternal
+    if (selectedRole?.formType === "dosenExt") {
+      if (!extForm.nama_lengkap.trim()) {
+        toast.error("Nama lengkap wajib diisi.");
+        return;
+      }
+      if (!extForm.nik.trim()) {
+        toast.error("NIK/NIP wajib diisi.");
+        return;
+      }
+      if (!extForm.instansi.trim()) {
+        toast.error("Instansi wajib diisi.");
+        return;
+      }
+    }
+
     if (!form.email || !form.password || !form.password_confirmation) {
       toast.error("Semua field wajib diisi.");
       return;
@@ -154,16 +233,32 @@ export default function Register() {
         email: form.email,
         password: form.password,
         password_confirmation: form.password_confirmation,
-        role: selectedRole?.key,
+        role: selectedRole?.sendAsRole,
         nidn:
           selectedRole?.idKey === "nidn" || selectedRole?.idKey === "nip"
             ? idValue
             : undefined,
         npm: selectedRole?.idKey === "npm" ? idValue : undefined,
+        nama: validatedData?.nama || undefined, // ← tambahkan ini
       };
+
+      // Tambahkan field Dosen Eksternal ke payload
+      if (selectedRole?.formType === "dosenExt") {
+        payload.nama_lengkap = extForm.nama_lengkap;
+        payload.jenkel = extForm.jenkel || undefined;
+        payload.tanggal_lahir = extForm.tanggal_lahir || undefined;
+        payload.tempat_lahir = extForm.tempat_lahir || undefined;
+        payload.agama = extForm.agama || undefined;
+        payload.no_hp = extForm.no_hp || undefined;
+        payload.nik = extForm.nik;
+        payload.instansi = extForm.instansi;
+      }
+
       const res = await auth.register(payload);
       if (res.data.status === 201) {
-        toast.success("Registrasi berhasil! Silakan login.");
+        toast.success(
+          res.data.message || "Registrasi berhasil! Silakan login.",
+        );
         navigate("/login");
       }
     } catch (err: any) {
@@ -186,7 +281,7 @@ export default function Register() {
         </div>
 
         {/* Main Card */}
-        <div className="relative z-10 bg-white rounded-3xl w-full max-w-5xl h-full max-h-[620px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.12)] flex flex-col lg:flex-row overflow-hidden border border-gray-100">
+        <div className="relative z-10 bg-white rounded-3xl w-full max-w-5xl h-full max-h-[700px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.12)] flex flex-col lg:flex-row overflow-hidden border border-gray-100">
           {/* LEFT PANEL */}
           <div className="w-full lg:w-[48%] flex flex-col h-full p-8 sm:px-12 sm:py-10 overflow-y-auto">
             {/* Logo */}
@@ -252,15 +347,15 @@ export default function Register() {
 
             {/* ── STEP 1: Pilih Role ── */}
             {step === 1 && (
-              <div className="flex-1 flex flex-col justify-center gap-4">
-                <p className="text-sm font-semibold text-gray-600 mb-2">
+              <div className="flex-1 flex flex-col justify-start gap-3 overflow-y-auto">
+                <p className="text-sm font-semibold text-gray-600 mb-1">
                   Saya adalah:
                 </p>
                 {ROLES.map((role) => (
                   <button
                     key={role.key}
                     onClick={() => handleSelectRole(role)}
-                    className="flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-100 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group text-left"
+                    className="flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-100 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group text-left shrink-0"
                   >
                     <div className="p-3 bg-gray-50 group-hover:bg-emerald-100 rounded-xl transition-all">
                       {role.icon}
@@ -280,7 +375,7 @@ export default function Register() {
                   </button>
                 ))}
 
-                <div className="mt-4 text-center">
+                <div className="mt-2 text-center shrink-0">
                   <p className="text-sm text-gray-500">
                     Sudah punya akun?{" "}
                     <Link
@@ -294,7 +389,7 @@ export default function Register() {
               </div>
             )}
 
-            {/* ── STEP 2: Validasi NIDN/NIP ── */}
+            {/* ── STEP 2: Validasi NIDN/NIP/NPM (role internal UIKA saja) ── */}
             {step === 2 && (
               <div className="flex-1 flex flex-col justify-center gap-5">
                 <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
@@ -316,6 +411,7 @@ export default function Register() {
                     value={idValue}
                     onChange={(e) => setIdValue(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleValidate()}
+                    maxLength={selectedRole?.idKey === "npm" ? 15 : 10}
                     className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                   />
                   <p className="text-xs text-gray-400">
@@ -352,26 +448,196 @@ export default function Register() {
             {/* ── STEP 3: Buat Akun ── */}
             {step === 3 && (
               <div className="flex-1 flex flex-col justify-center gap-4">
-                {/* Info pegawai tervalidasi */}
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
-                  <CheckCircle2
-                    size={20}
-                    className="text-emerald-600 shrink-0"
-                  />
-                  <div>
-                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
-                      Terverifikasi
-                    </p>
-                    <p className="font-extrabold text-gray-900 text-sm">
-                      {validatedData?.nama}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {selectedRole?.idLabel}: {idValue}
-                    </p>
+                {selectedRole?.skipValidation ? (
+                  <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-center gap-3">
+                    <CheckCircle2
+                      size={20}
+                      className="text-orange-600 shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-orange-700 uppercase tracking-wider">
+                        {selectedRole?.label}
+                      </p>
+                      {selectedRole?.formType === "dosenExt" && (
+                        <p className="text-xs text-gray-500">
+                          Akun akan menunggu verifikasi admin.
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
+                    <CheckCircle2
+                      size={20}
+                      className="text-emerald-600 shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                        Terverifikasi
+                      </p>
+                      <p className="font-extrabold text-gray-900 text-sm">
+                        {validatedData?.nama}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {selectedRole?.idLabel}: {idValue}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
+                  {/* ── Form NPM PMM (opsional) ── */}
+                  {selectedRole?.formType === "simple" &&
+                    selectedRole?.skipValidation && (
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-gray-700">
+                          {selectedRole?.idLabel}{" "}
+                          <span className="text-gray-400 text-xs font-normal">
+                            (opsional)
+                          </span>
+                        </label>
+                        <Input
+                          placeholder={selectedRole?.placeholder}
+                          value={idValue}
+                          onChange={(e) => setIdValue(e.target.value)}
+                          maxLength={15}
+                          className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        />
+                      </div>
+                    )}
+
+                  {/* ── Form lengkap Dosen Eksternal ── */}
+                  {selectedRole?.formType === "dosenExt" && (
+                    <>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-gray-700">
+                          Nama Lengkap <span className="text-rose-500">*</span>
+                        </label>
+                        <Input
+                          placeholder="Nama lengkap dengan gelar"
+                          value={extForm.nama_lengkap}
+                          onChange={(e) =>
+                            setExtForm({
+                              ...extForm,
+                              nama_lengkap: e.target.value,
+                            })
+                          }
+                          className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-semibold text-gray-700">
+                          Instansi Asal <span className="text-rose-500">*</span>
+                        </label>
+                        <Input
+                          placeholder="Nama institusi/kampus asal"
+                          value={extForm.instansi}
+                          onChange={(e) =>
+                            setExtForm({ ...extForm, instansi: e.target.value })
+                          }
+                          className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Jenis Kelamin
+                          </label>
+                          <select
+                            value={extForm.jenkel}
+                            onChange={(e) =>
+                              setExtForm({ ...extForm, jenkel: e.target.value })
+                            }
+                            className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:border-emerald-500 focus:ring-emerald-500/20 focus:outline-none"
+                          >
+                            <option value="">Pilih</option>
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Tanggal Lahir
+                          </label>
+                          <Input
+                            type="date"
+                            value={extForm.tanggal_lahir}
+                            onChange={(e) =>
+                              setExtForm({
+                                ...extForm,
+                                tanggal_lahir: e.target.value,
+                              })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Tempat Lahir
+                          </label>
+                          <Input
+                            placeholder="Kota lahir"
+                            value={extForm.tempat_lahir}
+                            onChange={(e) =>
+                              setExtForm({
+                                ...extForm,
+                                tempat_lahir: e.target.value,
+                              })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Agama
+                          </label>
+                          <Input
+                            placeholder="Agama"
+                            value={extForm.agama}
+                            onChange={(e) =>
+                              setExtForm({ ...extForm, agama: e.target.value })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            No HP
+                          </label>
+                          <Input
+                            placeholder="08xxxxxxxxxx"
+                            value={extForm.no_hp}
+                            onChange={(e) =>
+                              setExtForm({ ...extForm, no_hp: e.target.value })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            NIK/NIP <span className="text-rose-500">*</span>
+                          </label>
+                          <Input
+                            placeholder="Nomor identitas"
+                            value={extForm.nik}
+                            onChange={(e) =>
+                              setExtForm({ ...extForm, nik: e.target.value })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-700">
                       Email <span className="text-rose-500">*</span>
@@ -448,7 +714,9 @@ export default function Register() {
                   <Button
                     variant="outline"
                     className="flex-1 h-11 rounded-xl"
-                    onClick={() => setStep(2)}
+                    onClick={() =>
+                      setStep(selectedRole?.skipValidation ? 1 : 2)
+                    }
                   >
                     <ChevronLeft size={16} className="mr-1" /> Kembali
                   </Button>
