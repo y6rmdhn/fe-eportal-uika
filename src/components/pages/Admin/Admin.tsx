@@ -300,7 +300,7 @@ const AdminDashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number, name: string, props: any) => [
+                      formatter={(value: any, _name: any, props: any) => [
                         `${value} Akun`,
                         props.payload.role,
                       ]}

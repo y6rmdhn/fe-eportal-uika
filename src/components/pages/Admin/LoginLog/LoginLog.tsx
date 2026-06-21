@@ -1,5 +1,4 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
-import useDataTable from "@/hooks/Table/useDataTable";
 import useSuspiciousIps from "@/hooks/LoginLog/useSuspiciousIps";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";

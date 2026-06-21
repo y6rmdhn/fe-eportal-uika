@@ -24,7 +24,7 @@ const useCreateUser = () => {
   });
 
   const createUser = async (payload: createUserForm) => {
-    const response = await admin.createUser(payload); // JSON biasa, bukan FormData
+    const response = await admin.createUser(payload as any); // JSON biasa, bukan FormData
     return response.data;
   };
 

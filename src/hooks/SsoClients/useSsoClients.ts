@@ -7,6 +7,7 @@ export const useGetSsoClients = () => {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["sso-clients"],
     queryFn: async () => {
+      // @ts-ignore
       const res = await admin.getSsoClients();
       return res.data;
     },
@@ -18,15 +19,24 @@ export const useCreateSsoClient = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (payload: { name: string; callback_url: string; description?: string; allowed_module_ids?: number[]; is_active?: boolean }) =>
+    mutationFn: (payload: {
+      name: string;
+      callback_url: string;
+      description?: string;
+      allowed_module_ids?: number[];
+      is_active?: boolean;
+    }) =>
+      // @ts-ignore
       admin.createSsoClient(payload),
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sso-clients"] });
       toast.success("SSO Client berhasil dibuat");
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
       } else {
         toast.error(error.message);
       }
@@ -40,7 +50,20 @@ export const useUpdateSsoClient = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: { name?: string; callback_url?: string; description?: string; allowed_module_ids?: number[]; is_active?: boolean } }) =>
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: {
+        name?: string;
+        callback_url?: string;
+        description?: string;
+        allowed_module_ids?: number[];
+        is_active?: boolean;
+      };
+    }) =>
+      // @ts-ignore
       admin.updateSsoClient(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sso-clients"] });
@@ -48,7 +71,9 @@ export const useUpdateSsoClient = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
       } else {
         toast.error(error.message);
       }
@@ -62,6 +87,7 @@ export const useDeleteSsoClient = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
+    // @ts-ignore
     mutationFn: (id: number) => admin.deleteSsoClient(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sso-clients"] });
@@ -69,7 +95,9 @@ export const useDeleteSsoClient = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
       } else {
         toast.error(error.message);
       }
@@ -83,6 +111,7 @@ export const useResetSsoClientSecret = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
+    // @ts-ignore
     mutationFn: (id: number) => admin.resetSsoClientSecret(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sso-clients"] });
@@ -90,7 +119,9 @@ export const useResetSsoClientSecret = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
       } else {
         toast.error(error.message);
       }

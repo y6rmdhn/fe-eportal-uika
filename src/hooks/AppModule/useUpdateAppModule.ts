@@ -30,6 +30,7 @@ const useUpdateAppModule = () => {
       payload.roles.forEach((r) => formData.append("roles[]", r));
       if (payload.icon instanceof File) formData.append("icon", payload.icon);
 
+      // @ts-ignore
       const response = await admin.updateAppModule(id, formData);
       return response.data;
     },

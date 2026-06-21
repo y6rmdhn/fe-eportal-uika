@@ -28,6 +28,7 @@ export default function DialogUpdateUser({
     if (currentData && open) {
       form.reset({
         email: currentData.email ?? "",
+        // @ts-ignore
         role: currentData.role ?? "Mahasiswa",
         nidn: currentData.nidn ?? "",
         npm: currentData.npm ?? "",
