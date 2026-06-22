@@ -7,9 +7,9 @@ import { defineConfig } from "vite";
 export default defineConfig(({ command }) => {
   return {
     plugins: [react(), tailwindcss()],
-    // Kalau di-build (npm run build) = '/v2/'
+    // Kalau di-build (npm run build) = '/eportal/'
     // Kalau di-dev (npm run dev) = '/'
-    base: command === "build" ? "/v2/" : "/",
+    base: command === "build" ? "/eportal/" : "/",
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
