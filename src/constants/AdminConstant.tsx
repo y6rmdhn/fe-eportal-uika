@@ -64,7 +64,7 @@ export const HEADER_TABLE_USER = [
   "No",
   "Informasi User", // Gabungan Foto, Nama, dan Email
   "ID (NPM/NIP/NIDN)", // Menyesuaikan role-nya
-  "Role",
+  "Jabatan / Role",
   // "Status",
   "Tangal Daftar",
   "Aksi",

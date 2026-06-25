@@ -10,6 +10,8 @@ export interface UserData {
    role: "Admin" | "Mahasiswa" | "Dosen" | "Pegawai";
   nidn?: string;
   npm?: string;
+  unit_id?: number | null;
+  roles?: string[];
   isverified: boolean;
   created_at: string;
 }
