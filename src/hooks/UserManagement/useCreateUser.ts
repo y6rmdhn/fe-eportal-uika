@@ -16,9 +16,10 @@ const useCreateUser = () => {
     defaultValues: {
       email: "",
       password: "",
-      role: "Mahasiswa",
       nidn: "",
       npm: "",
+      unit_id: "" as any,
+      roles: [],
     },
     resolver: zodResolver(createUserSchema),
   });

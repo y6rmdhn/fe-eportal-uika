@@ -23,6 +23,8 @@ import DialogResetPassword from "./Dialog/DialogResetPassword";
 import useExportImportUser from "@/hooks/UserManagement/useExportImportUser";
 import { Spinner } from "@/components/ui/spinner";
 import DialogImportUser from "./Dialog/DialogImportUser";
+import { useQuery } from "@tanstack/react-query";
+import admin from "@/services/api/admin";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
@@ -33,6 +35,16 @@ const UserManagement = () => {
   const handleChanngeAction = (open: boolean) => {
     if (!open) setSelectedAction(null);
   };
+
+  // Fetch jabatan/roles dari API untuk filter dropdown
+  const { data: rolesRes } = useQuery({
+    queryKey: ["all-roles"],
+    queryFn: async () => {
+      const res = await admin.getRoles();
+      return res.data?.data as { id: number; name: string }[];
+    },
+  });
+  const jabatanOptions = rolesRes || [];
 
   const {
     currentLimit,
@@ -86,13 +98,26 @@ const UserManagement = () => {
             {user.nidn || user.npm || "-"}
           </span>,
 
-          // Role
-          <span
+          // Role / Jabatan — tampilkan dari array roles aktual (Spatie)
+          <div
             key={`role-${index}`}
-            className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100"
+            className="flex flex-wrap gap-1"
           >
-            {user.role}
-          </span>,
+            {Array.isArray(user.roles) && user.roles.length > 0 ? (
+              user.roles.map((r, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap"
+                >
+                  {r}
+                </span>
+              ))
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-400 border border-gray-200">
+                Tidak Ada Jabatan
+              </span>
+            )}
+          </div>,
 
           // Tanggal
           <span
@@ -161,10 +186,12 @@ const UserManagement = () => {
                 <SelectValue placeholder="Filter role" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">Semua role</SelectItem>
-                <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
-                <SelectItem value="Dosen">Dosen</SelectItem>
-                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="all">Semua Jabatan</SelectItem>
+                {jabatanOptions.map((jab) => (
+                  <SelectItem key={jab.id} value={jab.name}>
+                    {jab.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

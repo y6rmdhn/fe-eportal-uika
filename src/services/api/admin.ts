@@ -16,11 +16,10 @@ const admin = {
       },
     });
   },
-  createUser(payload: FormData) {
+  createUser(payload: Record<string, unknown>) {
     return network.post("/admins", payload);
   },
-  updateUser(id: string, payload: FormData) {
-    // hapus payload.append("_method", "PUT");
+  updateUser(id: string, payload: Record<string, unknown>) {
     return network.post(`/admins/${id}`, payload);
   },
   deleteUser(id: string) {
@@ -108,6 +107,9 @@ const admin = {
   // ─── Roles ─────────────────────────────────────────────────────────────────
   getRoles() {
     return network.get("/admins/roles");
+  },
+  getUnits() {
+    return network.get("/admins/units");
   },
   getRole(id: number) {
     return network.get(`/admins/roles/${id}`);

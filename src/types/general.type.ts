@@ -10,6 +10,8 @@ export interface UserData {
   role: string;
   nidn?: string;
   npm?: string;
+  unit_id?: number | null;
+  roles?: string[];
   isverified: boolean;
   created_at: string;
 }

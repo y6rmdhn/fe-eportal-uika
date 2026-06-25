@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import type { UserData } from "@/types/general.type";
 import useUpdateUser from "@/hooks/UserManagement/useUpdateUser";
-import FormUser from "./Form/FormUser";
+import FormUpdateUser from "./Form/FormUpdateUser";
 import type { updateUserForm } from "@/validations/userManagementValidation";
 
 export default function DialogUpdateUser({
@@ -28,21 +28,21 @@ export default function DialogUpdateUser({
     if (currentData && open) {
       form.reset({
         email: currentData.email ?? "",
-        role: currentData.role ?? "Mahasiswa",
         nidn: currentData.nidn ?? "",
         npm: currentData.npm ?? "",
         password: "",
+        unit_id: currentData.unit_id ?? ("" as any),
+        roles: Array.isArray(currentData.roles) ? currentData.roles : [],
       });
     }
   }, [currentData, open]);
 
   return (
     <Dialog open={open} onOpenChange={handleChangeAction}>
-      <FormUser
+      <FormUpdateUser
         form={form}
         onSubmit={onSubmit}
         isLoading={isPendingUpdateUser}
-        type="Update"
       />
     </Dialog>
   );

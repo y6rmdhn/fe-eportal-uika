@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import auth from "@/services/api/auth.ts";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   LogOut,
   LayoutGrid,
   ArrowRight,
@@ -79,6 +86,9 @@ interface MyModulesResponse {
 
 export default function Dashboard() {
   const [loadingApp, setLoadingApp] = useState<number | null>(null);
+  const [selectedModule, setSelectedModule] = useState<AppModule | null>(null);
+  const [availableRoles, setAvailableRoles] = useState<{ role_id: number; role_name: string }[]>([]);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const { handleLogout, isPendingLogout } = useLogout();
   const navigate = useNavigate();
 
@@ -98,7 +108,6 @@ export default function Dashboard() {
   const modules = modulesResponse?.modules ?? [];
   const isAdmin = modulesResponse?.is_admin ?? false;
   const isLoading = isModulesLoading || isUserLoading;
-  const roleBadge = getRoleBadge(userData?.role);
 
   console.log("modulesResponse:", modulesResponse);
   console.log("isAdmin:", isAdmin);
@@ -106,7 +115,22 @@ export default function Dashboard() {
 
   // ── Buka aplikasi via SSO redirect ─────────────────────────────────────────
   const handleOpenApp = async (mod: AppModule) => {
-    await proceedRedirect(mod, userData?.role_id ?? "1");
+    setLoadingApp(mod.id);
+    try {
+      const response = await network.get(`/my-modules/${mod.id}/roles`);
+      const roles = response.data?.data?.roles || [];
+      if (roles.length === 0) {
+        await proceedRedirect(mod, userData?.role_id ?? "1");
+      } else {
+        setAvailableRoles(roles);
+        setSelectedModule(mod);
+        setIsRoleModalOpen(true);
+      }
+    } catch (error) {
+      await proceedRedirect(mod, userData?.role_id ?? "1");
+    } finally {
+      setLoadingApp(null);
+    }
   };
 
   const proceedRedirect = async (mod: AppModule, roleId: string | number) => {
@@ -191,10 +215,8 @@ export default function Dashboard() {
                         ? "Memuat..."
                         : (userData?.name ?? "Pengguna")}
                     </span>
-                    <span
-                      className={`text-[10px] font-semibold mt-0.5 px-1.5 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}
-                    >
-                      {roleBadge.label}
+                    <span className="text-[10px] font-bold text-emerald-600 mt-0.5 truncate max-w-[140px]">
+                      {userData?.unit_name || "No Unit"}
                     </span>
                   </div>
                 </button>
@@ -204,18 +226,39 @@ export default function Dashboard() {
                 align="end"
                 className="w-56 rounded-2xl border-gray-100 shadow-xl p-1"
               >
-                <DropdownMenuLabel className="px-3 py-2.5">
+                <DropdownMenuLabel className="px-3 py-2.5 w-64">
                   <p className="font-bold text-gray-900 text-sm truncate">
                     {userData?.name}
                   </p>
                   <p className="text-xs text-gray-400 font-normal truncate mt-0.5">
                     {userData?.email}
                   </p>
-                  <span
-                    className={`inline-block text-[10px] font-bold mt-1.5 px-2 py-0.5 rounded-full ${roleBadge.bg} ${roleBadge.text}`}
-                  >
-                    {roleBadge.label}
-                  </span>
+                  {userData?.unit_name && (
+                    <div className="mt-1.5 flex items-center gap-1 text-[11px] font-extrabold text-emerald-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                      {userData.unit_name}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {Array.isArray(userData?.jabatans) && userData.jabatans.length > 0 ? (
+                      userData.jabatans.map((jab: string) => {
+                        const badge = getRoleBadge(jab);
+                        return (
+                          <span
+                            key={jab}
+                            className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${badge.bg} ${badge.text}`}
+                            style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                          >
+                            {jab}
+                          </span>
+                        );
+                      })
+                    ) : (
+                      <span className="inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded border bg-gray-100 text-gray-400">
+                        Tidak ada jabatan
+                      </span>
+                    )}
+                  </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -270,6 +313,32 @@ export default function Dashboard() {
                     ? "Sebagai admin, kamu dapat mengakses seluruh sistem informasi yang tersedia."
                     : "Pilih aplikasi di bawah untuk mengaksesnya dengan satu klik. Akses disesuaikan dengan hak yang kamu miliki."}
                 </p>
+                <div className="flex flex-wrap gap-2 mt-4 items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {userData?.unit_name && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-100 rounded-xl text-xs font-extrabold text-blue-700 transition-colors shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      Unit: {userData.unit_name}
+                    </div>
+                  )}
+                  {Array.isArray(userData?.jabatans) && userData.jabatans.length > 0 ? (
+                    userData.jabatans.map((jab: string) => {
+                      const badge = getRoleBadge(jab);
+                      return (
+                        <div
+                          key={jab}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-xl text-xs font-extrabold transition-colors shadow-sm ${badge.bg} ${badge.text}`}
+                          style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                        >
+                          {jab}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 border border-gray-200 rounded-xl text-xs font-semibold text-gray-400">
+                      Tidak ada jabatan
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Badge info modul */}
@@ -417,6 +486,55 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Dialog Pemilihan Jabatan/Role ── */}
+      <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-6 bg-white border border-gray-100 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+              <Shield size={20} className="text-emerald-600" />
+              Pilih Jabatan Akses
+            </DialogTitle>
+            <DialogDescription className="text-gray-500 font-medium text-xs mt-1">
+              Pilih salah satu jabatan Anda yang akan digunakan untuk mengakses modul{" "}
+              <strong className="text-emerald-600">{selectedModule?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 py-4">
+            {availableRoles.map((role) => {
+              const badge = getRoleBadge(role.role_name);
+              return (
+                <button
+                  key={role.role_id}
+                  onClick={() => {
+                    setIsRoleModalOpen(false);
+                    if (selectedModule) {
+                      proceedRedirect(selectedModule, role.role_id);
+                    }
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-emerald-50/50 hover:border-emerald-200 border border-gray-100 rounded-2xl text-left transition-all group cursor-pointer hover:shadow-sm"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-800 text-sm group-hover:text-emerald-800 transition-colors">
+                      {role.role_name}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium mt-0.5">
+                      Klik untuk masuk sebagai {role.role_name}
+                    </span>
+                  </div>
+                  <div
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badge.bg} ${badge.text}`}
+                    style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                  >
+                    Pilih
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
