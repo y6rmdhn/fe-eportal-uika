@@ -18,75 +18,80 @@ import SsoKeys from "./components/pages/Admin/SsoKeys";
 import Register from "./components/pages/Auth/Register";
 
 function App() {
-  const router = createBrowserRouter([
+  const router = createBrowserRouter(
+    [
+      {
+        path: "/",
+        loader: mainLoader,
+        element: <Dashboard />,
+      },
+      {
+        path: "/profile",
+        loader: mainLoader,
+        element: <Profile />,
+      },
+      {
+        path: "/login",
+        loader: authLoader,
+        element: <Login />,
+      },
+      {
+        path: "/auth/google/success",
+        element: <GoogleCallback />,
+      },
+      {
+        path: "/register",
+        element: <Register />,
+      },
+      {
+        path: "/reset-password",
+        element: <ResetPassword />,
+      },
+      {
+        path: "/admin",
+        loader: adminLoader,
+        element: <AdminDashboard />,
+      },
+      {
+        path: "/admin/user-management",
+        loader: adminLoader,
+        element: <UserManagement />,
+      },
+      {
+        path: "/admin/app-modules",
+        loader: adminLoader,
+        element: <AppModules />,
+      },
+      {
+        path: "/admin/roles",
+        loader: adminLoader,
+        element: <Roles />,
+      },
+      {
+        path: "/admin/permissions",
+        loader: adminLoader,
+        element: <Permissions />,
+      },
+      {
+        path: "/admin/role-permissions",
+        loader: adminLoader,
+        element: <RolePermissions />,
+      },
+      {
+        path: "/admin/log",
+        loader: adminLoader,
+        element: <LoginLog />,
+      },
+      {
+        path: "/admin/sso-keys",
+        loader: adminLoader,
+        element: <SsoKeys />,
+      },
+    ],
     {
-      path: "/",
-      loader: mainLoader,
-      element: <Dashboard />,
+      basename: "/eportal",
     },
-    {
-      path: "/profile",
-      loader: mainLoader,
-      element: <Profile />,
-    },
-    {
-      path: "/login",
-      loader: authLoader,
-      element: <Login />,
-    },
-    {
-      path: "/auth/google/success",
-      element: <GoogleCallback />,
-    },
-    {
-      path: "/register",
-      element: <Register />,
-    },
-    {
-      path: "/reset-password",
-      element: <ResetPassword />,
-    },
-    {
-      path: "/admin",
-      loader: adminLoader,
-      element: <AdminDashboard />,
-    },
-    {
-      path: "/admin/user-management",
-      loader: adminLoader,
-      element: <UserManagement />,
-    },
-    {
-      path: "/admin/app-modules",
-      loader: adminLoader,
-      element: <AppModules />,
-    },
-    {
-      path: "/admin/roles",
-      loader: adminLoader,
-      element: <Roles />,
-    },
-    {
-      path: "/admin/permissions",
-      loader: adminLoader,
-      element: <Permissions />,
-    },
-    {
-      path: "/admin/role-permissions",
-      loader: adminLoader,
-      element: <RolePermissions />,
-    },
-    {
-      path: "/admin/log",
-      loader: adminLoader,
-      element: <LoginLog />,
-    },
-    {
-      path: "/admin/sso-keys",
-      loader: adminLoader,
-      element: <SsoKeys />,
-    },
-  ]);
+  );
 
   return (
     <>

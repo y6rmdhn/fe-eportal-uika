@@ -23,7 +23,7 @@ const useUpdateUser = () => {
     id: string;
     payload: updateUserForm;
   }) => {
-    const response = await admin.updateUser(id, payload); // JSON biasa
+    const response = await admin.updateUser(id, payload as any); // JSON biasa
     return response.data;
   };
 

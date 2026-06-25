@@ -30,8 +30,8 @@ export default function DialogResetPassword({
   const [show, setShow] = useState({ password: false, confirm: false });
 
   const onSubmit = (payload: any) => {
-    if (currentData?.public_id) {
-      handleResetPassword(currentData.public_id, payload);
+    if (currentData?.id) {
+      handleResetPassword(currentData.id, payload);
     }
   };
 
@@ -46,7 +46,7 @@ export default function DialogResetPassword({
           <DialogDescription>
             Reset password untuk{" "}
             <span className="font-semibold text-gray-900">
-              {currentData?.name}
+              {currentData?.email}
             </span>
           </DialogDescription>
         </DialogHeader>

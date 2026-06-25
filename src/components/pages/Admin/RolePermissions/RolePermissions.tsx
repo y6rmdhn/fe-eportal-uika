@@ -44,7 +44,9 @@ export default function RolePermissions() {
   const [searchAssigned, setSearchAssigned] = useState("");
 
   // Selected permission checkboxes
-  const [selectedAvailableIds, setSelectedAvailableIds] = useState<number[]>([]);
+  const [selectedAvailableIds, setSelectedAvailableIds] = useState<number[]>(
+    [],
+  );
   const [selectedAssignedIds, setSelectedAssignedIds] = useState<number[]>([]);
 
   // Fetch Roles
@@ -52,8 +54,12 @@ export default function RolePermissions() {
   const roles: Role[] = useMemo(() => rolesData?.data || [], [rolesData]);
 
   // Fetch All Permissions
-  const { data: allPermsData, isLoading: isLoadingAllPerms } = useGetPermissions();
-  const allPermissions: Permission[] = useMemo(() => allPermsData?.data || [], [allPermsData]);
+  const { data: allPermsData, isLoading: isLoadingAllPerms } =
+    useGetPermissions();
+  const allPermissions: Permission[] = useMemo(
+    () => allPermsData?.data || [],
+    [allPermsData],
+  );
 
   // Fetch Role's Permissions
   const activeRoleId = selectedRoleId ? parseInt(selectedRoleId, 10) : null;
@@ -63,7 +69,10 @@ export default function RolePermissions() {
     const rawList = rolePermsData?.data || [];
     return rawList
       .map((item: { permission?: Permission }) => item.permission)
-      .filter((p): p is Permission => p !== null && p !== undefined);
+      .filter(
+        (p: Permission | undefined): p is Permission =>
+          p !== null && p !== undefined,
+      );
   }, [rolePermsData]);
 
   // Mutation hooks
@@ -72,30 +81,31 @@ export default function RolePermissions() {
 
   // Find unassigned permissions
   const assignedIdsSet = useMemo(
-    () => new Set(assignedPermissions.filter((p) => p && p.id).map((p) => p.id)),
-    [assignedPermissions]
+    () =>
+      new Set(assignedPermissions.filter((p) => p && p.id).map((p) => p.id)),
+    [assignedPermissions],
   );
 
   const availablePermissions = useMemo(
     () => allPermissions.filter((p) => p && p.id && !assignedIdsSet.has(p.id)),
-    [allPermissions, assignedIdsSet]
+    [allPermissions, assignedIdsSet],
   );
 
   // Filtered lists based on search
   const filteredAvailable = useMemo(
     () =>
       availablePermissions.filter((p) =>
-        p?.name?.toLowerCase()?.includes(searchAvailable.toLowerCase())
+        p?.name?.toLowerCase()?.includes(searchAvailable.toLowerCase()),
       ),
-    [availablePermissions, searchAvailable]
+    [availablePermissions, searchAvailable],
   );
 
   const filteredAssigned = useMemo(
     () =>
       assignedPermissions.filter((p) =>
-        p?.name?.toLowerCase()?.includes(searchAssigned.toLowerCase())
+        p?.name?.toLowerCase()?.includes(searchAssigned.toLowerCase()),
       ),
-    [assignedPermissions, searchAssigned]
+    [assignedPermissions, searchAssigned],
   );
 
   // Grouped available permissions by appModule
@@ -150,9 +160,13 @@ export default function RolePermissions() {
   // Toggle all permissions within a specific app module group (Available list)
   const toggleAllInGroupAvailable = (groupPermissions: Permission[]) => {
     const groupIds = groupPermissions.map((p) => p.id);
-    const areAllSelected = groupIds.every((id) => selectedAvailableIds.includes(id));
+    const areAllSelected = groupIds.every((id) =>
+      selectedAvailableIds.includes(id),
+    );
     if (areAllSelected) {
-      setSelectedAvailableIds((prev) => prev.filter((id) => !groupIds.includes(id)));
+      setSelectedAvailableIds((prev) =>
+        prev.filter((id) => !groupIds.includes(id)),
+      );
     } else {
       setSelectedAvailableIds((prev) => [...new Set([...prev, ...groupIds])]);
     }
@@ -161,9 +175,13 @@ export default function RolePermissions() {
   // Toggle all permissions within a specific app module group (Assigned list)
   const toggleAllInGroupAssigned = (groupPermissions: Permission[]) => {
     const groupIds = groupPermissions.map((p) => p.id);
-    const areAllSelected = groupIds.every((id) => selectedAssignedIds.includes(id));
+    const areAllSelected = groupIds.every((id) =>
+      selectedAssignedIds.includes(id),
+    );
     if (areAllSelected) {
-      setSelectedAssignedIds((prev) => prev.filter((id) => !groupIds.includes(id)));
+      setSelectedAssignedIds((prev) =>
+        prev.filter((id) => !groupIds.includes(id)),
+      );
     } else {
       setSelectedAssignedIds((prev) => [...new Set([...prev, ...groupIds])]);
     }
@@ -172,19 +190,19 @@ export default function RolePermissions() {
   // Handle Select/Deselect Available
   const toggleAvailable = (id: number) => {
     setSelectedAvailableIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   const toggleAllAvailable = () => {
     const allFilteredIds = filteredAvailable.map((p) => p.id);
     const areAllSelected = allFilteredIds.every((id) =>
-      selectedAvailableIds.includes(id)
+      selectedAvailableIds.includes(id),
     );
 
     if (areAllSelected) {
       setSelectedAvailableIds((prev) =>
-        prev.filter((id) => !allFilteredIds.includes(id))
+        prev.filter((id) => !allFilteredIds.includes(id)),
       );
     } else {
       setSelectedAvailableIds((prev) => [
@@ -196,19 +214,19 @@ export default function RolePermissions() {
   // Handle Select/Deselect Assigned
   const toggleAssigned = (id: number) => {
     setSelectedAssignedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
   const toggleAllAssigned = () => {
     const allFilteredIds = filteredAssigned.map((p) => p.id);
     const areAllSelected = allFilteredIds.every((id) =>
-      selectedAssignedIds.includes(id)
+      selectedAssignedIds.includes(id),
     );
 
     if (areAllSelected) {
       setSelectedAssignedIds((prev) =>
-        prev.filter((id) => !allFilteredIds.includes(id))
+        prev.filter((id) => !allFilteredIds.includes(id)),
       );
     } else {
       setSelectedAssignedIds((prev) => [
@@ -226,7 +244,7 @@ export default function RolePermissions() {
         onSuccess: () => {
           setSelectedAvailableIds([]);
         },
-      }
+      },
     );
   };
 
@@ -239,7 +257,7 @@ export default function RolePermissions() {
         onSuccess: () => {
           setSelectedAssignedIds([]);
         },
-      }
+      },
     );
   };
 
@@ -259,7 +277,8 @@ export default function RolePermissions() {
                 Penugasan Hak Akses
               </h1>
               <p className="text-sm font-medium text-gray-500 mt-1">
-                Berikan (assign) atau cabut (unassign) permissions ke role pengguna.
+                Berikan (assign) atau cabut (unassign) permissions ke role
+                pengguna.
               </p>
             </div>
           </div>
@@ -299,16 +318,21 @@ export default function RolePermissions() {
             <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800">Pilih Role Terlebih Dahulu</h3>
+            <h3 className="text-lg font-bold text-gray-800">
+              Pilih Role Terlebih Dahulu
+            </h3>
             <p className="text-sm text-gray-500 max-w-sm mt-1">
-              Silakan pilih salah satu role di dropdown kanan atas untuk mulai mengelola hak aksesnya.
+              Silakan pilih salah satu role di dropdown kanan atas untuk mulai
+              mengelola hak aksesnya.
             </p>
           </div>
         ) : isLoadingRolePerms || isLoadingAllPerms ? (
           <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex items-center justify-center py-24">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="animate-spin text-emerald-600 h-10 w-10" />
-              <span className="text-sm font-medium text-gray-500">Memuat hak akses...</span>
+              <span className="text-sm font-medium text-gray-500">
+                Memuat hak akses...
+              </span>
             </div>
           </div>
         ) : (
@@ -326,7 +350,8 @@ export default function RolePermissions() {
                     Daftar permissions yang belum dimiliki oleh role{" "}
                     <span className="capitalize font-semibold text-emerald-600">
                       {currentRole?.name}
-                    </span>.
+                    </span>
+                    .
                   </p>
                 </div>
                 <span className="inline-flex px-2.5 py-1 bg-gray-150 text-gray-700 text-xs font-bold rounded-lg border border-gray-200">
@@ -352,7 +377,7 @@ export default function RolePermissions() {
                     className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-600 hover:text-emerald-600 border border-gray-200 hover:border-emerald-200 rounded-xl hover:bg-emerald-55/10 transition-all"
                   >
                     {filteredAvailable.every((p) =>
-                      selectedAvailableIds.includes(p.id)
+                      selectedAvailableIds.includes(p.id),
                     ) ? (
                       <>
                         <CheckSquare className="h-4 w-4 text-emerald-600" />
@@ -403,7 +428,9 @@ export default function RolePermissions() {
                           }}
                           className="text-xs font-bold text-emerald-700 hover:text-emerald-950 bg-emerald-100/40 hover:bg-emerald-100/80 px-2.5 py-1 rounded-lg transition-all"
                         >
-                          {group.permissions.every((p) => selectedAvailableIds.includes(p.id))
+                          {group.permissions.every((p) =>
+                            selectedAvailableIds.includes(p.id),
+                          )
                             ? "Batal Semua"
                             : "Pilih Semua"}
                         </button>
@@ -412,7 +439,9 @@ export default function RolePermissions() {
                       {/* Group Permissions */}
                       <div className="grid grid-cols-1 gap-2 pl-1">
                         {group.permissions.map((perm) => {
-                          const isSelected = selectedAvailableIds.includes(perm.id);
+                          const isSelected = selectedAvailableIds.includes(
+                            perm.id,
+                          );
                           return (
                             <div
                               key={perm.id}
@@ -430,12 +459,18 @@ export default function RolePermissions() {
                                     : "border border-gray-300"
                                 }`}
                               >
-                                {isSelected && <span className="text-[10px] font-bold">✓</span>}
+                                {isSelected && (
+                                  <span className="text-[10px] font-bold">
+                                    ✓
+                                  </span>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p
                                   className={`text-sm font-semibold truncate ${
-                                    isSelected ? "text-emerald-800" : "text-gray-700"
+                                    isSelected
+                                      ? "text-emerald-800"
+                                      : "text-gray-700"
                                   }`}
                                 >
                                   {perm.name || "Unnamed Permission"}
@@ -457,7 +492,9 @@ export default function RolePermissions() {
               <div className="p-4 border-t border-gray-100 flex-shrink-0 bg-white">
                 <Button
                   className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/10 font-bold transition-all flex items-center justify-center gap-2"
-                  disabled={selectedAvailableIds.length === 0 || isPendingAssign}
+                  disabled={
+                    selectedAvailableIds.length === 0 || isPendingAssign
+                  }
                   onClick={handleAssign}
                 >
                   {isPendingAssign ? (
@@ -485,7 +522,8 @@ export default function RolePermissions() {
                     Daftar permissions yang saat ini dimiliki oleh role{" "}
                     <span className="capitalize font-semibold text-emerald-600">
                       {currentRole?.name}
-                    </span>.
+                    </span>
+                    .
                   </p>
                 </div>
                 <span className="inline-flex px-2.5 py-1 bg-gray-150 text-gray-700 text-xs font-bold rounded-lg border border-gray-200">
@@ -511,7 +549,7 @@ export default function RolePermissions() {
                     className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-600 hover:text-rose-600 border border-gray-200 hover:border-rose-200 rounded-xl hover:bg-rose-50/50 transition-all"
                   >
                     {filteredAssigned.every((p) =>
-                      selectedAssignedIds.includes(p.id)
+                      selectedAssignedIds.includes(p.id),
                     ) ? (
                       <>
                         <CheckSquare className="h-4 w-4 text-rose-600" />
@@ -562,7 +600,9 @@ export default function RolePermissions() {
                           }}
                           className="text-xs font-bold text-rose-700 hover:text-rose-950 bg-rose-100/40 hover:bg-rose-100/80 px-2.5 py-1 rounded-lg transition-all"
                         >
-                          {group.permissions.every((p) => selectedAssignedIds.includes(p.id))
+                          {group.permissions.every((p) =>
+                            selectedAssignedIds.includes(p.id),
+                          )
                             ? "Batal Semua"
                             : "Pilih Semua"}
                         </button>
@@ -571,7 +611,9 @@ export default function RolePermissions() {
                       {/* Group Permissions */}
                       <div className="grid grid-cols-1 gap-2 pl-1">
                         {group.permissions.map((perm) => {
-                          const isSelected = selectedAssignedIds.includes(perm.id);
+                          const isSelected = selectedAssignedIds.includes(
+                            perm.id,
+                          );
                           return (
                             <div
                               key={perm.id}
@@ -589,12 +631,18 @@ export default function RolePermissions() {
                                     : "border border-gray-300"
                                 }`}
                               >
-                                {isSelected && <span className="text-[10px] font-bold">✓</span>}
+                                {isSelected && (
+                                  <span className="text-[10px] font-bold">
+                                    ✓
+                                  </span>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p
                                   className={`text-sm font-semibold truncate ${
-                                    isSelected ? "text-rose-800" : "text-gray-700"
+                                    isSelected
+                                      ? "text-rose-800"
+                                      : "text-gray-700"
                                   }`}
                                 >
                                   {perm.name || "Unnamed Permission"}
@@ -616,7 +664,9 @@ export default function RolePermissions() {
               <div className="p-4 border-t border-gray-100 flex-shrink-0 bg-white">
                 <Button
                   className="w-full h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-md shadow-rose-600/10 font-bold transition-all flex items-center justify-center gap-2"
-                  disabled={selectedAssignedIds.length === 0 || isPendingUnassign}
+                  disabled={
+                    selectedAssignedIds.length === 0 || isPendingUnassign
+                  }
                   onClick={handleUnassign}
                 >
                   {isPendingUnassign ? (

@@ -7,6 +7,7 @@ export default function DialogCreateUser() {
   return (
     <FormMenu
       form={form}
+      // @ts-ignore
       onSubmit={handleCreateUser}
       isLoading={isPendingCreateUser}
       type="Create"

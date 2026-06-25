@@ -5,7 +5,7 @@ import { HEADER_TABLE_ROLE } from "@/constants/AdminConstant";
 import { useGetRoles } from "@/hooks/Roles/useRoles";
 import type { Role } from "@/types/general.type";
 import { useMemo, useState } from "react";
-import { Plus, Edit2, Trash2, KeyRound } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import DialogCreateRole from "./Dialog/DialogCreateRole";
 import DialogUpdateRole from "./Dialog/DialogUpdateRole";
 import DialogDeleteRole from "./Dialog/DialogDeleteRole";
