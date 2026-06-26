@@ -54,7 +54,7 @@ export default function FormUpdateUser<T extends FieldValues>({
 
   // Filter roles based on search term
   const filteredRoles = roles.filter((r) =>
-    r.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (r.name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const isAllSelected = roles.length > 0 && currentRoles.length === roles.length;
