@@ -31,7 +31,7 @@ export default function DialogUpdateUser({
         nidn: currentData.nidn ?? "",
         npm: currentData.npm ?? "",
         password: "",
-        unit_id: currentData.unit_id ?? ("" as any),
+        unit_id: currentData.unit_id ?? null,
         roles: Array.isArray(currentData.roles) ? currentData.roles : [],
       });
     }

@@ -60,15 +60,15 @@ function getInitials(name: string): string {
 
 /** Warna role badge */
 function getRoleBadge(role?: string) {
-  if (!role) return { bg: "bg-gray-100", text: "text-gray-600", label: "User" };
+  if (!role) return { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200", label: "User" };
   const r = role.toLowerCase();
   if (r.includes("admin"))
-    return { bg: "bg-rose-50", text: "text-rose-700", label: role };
+    return { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-700/15", label: role };
   if (r.includes("dosen"))
-    return { bg: "bg-blue-50", text: "text-blue-700", label: role };
+    return { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-700/15", label: role };
   if (r.includes("mahasiswa"))
-    return { bg: "bg-emerald-50", text: "text-emerald-700", label: role };
-  return { bg: "bg-purple-50", text: "text-purple-700", label: role };
+    return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-700/15", label: role };
+  return { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-700/15", label: role };
 }
 
 interface AppModule {
@@ -245,8 +245,7 @@ export default function Dashboard() {
                         return (
                           <span
                             key={jab}
-                            className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${badge.bg} ${badge.text}`}
-                            style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                            className={`inline-block text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${badge.bg} ${badge.text} ${badge.border}`}
                           >
                             {jab}
                           </span>
@@ -325,8 +324,7 @@ export default function Dashboard() {
                       return (
                         <div
                           key={jab}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-xl text-xs font-extrabold transition-colors shadow-sm ${badge.bg} ${badge.text}`}
-                          style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-xl text-xs font-extrabold transition-colors shadow-sm ${badge.bg} ${badge.text} ${badge.border}`}
                         >
                           {jab}
                         </div>
@@ -523,8 +521,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badge.bg} ${badge.text}`}
-                    style={{ borderColor: 'currentColor', borderOpacity: 0.15 }}
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badge.bg} ${badge.text} ${badge.border}`}
                   >
                     Pilih
                   </div>
