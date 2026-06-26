@@ -18,7 +18,7 @@ const useCreateUser = () => {
       password: "",
       nidn: "",
       npm: "",
-      unit_id: "" as any,
+      unit_id: null as any,
       roles: [],
     },
     resolver: zodResolver(createUserSchema),

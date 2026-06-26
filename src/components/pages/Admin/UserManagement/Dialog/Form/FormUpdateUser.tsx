@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { UserCheck, Shield, Search } from "lucide-react";
+import { UserCheck, Search } from "lucide-react";
 import { Controller } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import admin from "@/services/api/admin";
