@@ -89,7 +89,7 @@ function App() {
       },
     ],
     {
-      basename: "/eportal",
+      basename: "/",
     },
   );
 

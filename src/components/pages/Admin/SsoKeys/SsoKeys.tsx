@@ -78,8 +78,8 @@ const SsoKeys = () => {
   const filtered = useMemo(() => {
     return templates.filter((t: any) => {
       const matchSearch =
-        t.name.toLowerCase().includes(search.toLowerCase()) ||
-        t.description?.toLowerCase().includes(search.toLowerCase());
+        (t.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (t.description || "").toLowerCase().includes(search.toLowerCase());
       const matchCategory =
         categoryFilter === "all" || t.category === categoryFilter;
       return matchSearch && matchCategory;
