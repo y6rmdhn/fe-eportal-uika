@@ -35,7 +35,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useLoaderData } from "react-router-dom";
 
-const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png";
+const BASE_URL = import.meta.env.BASE_URL;
+
+// Tinggal gabungin string-nya! (BASE_URL udah ada garis miring akhirnya)
+const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 
 /** Palet warna gradient untuk kartu modul (bergiliran berdasarkan index) */
 const MODULE_GRADIENTS = [
@@ -60,15 +63,41 @@ function getInitials(name: string): string {
 
 /** Warna role badge */
 function getRoleBadge(role?: string) {
-  if (!role) return { bg: "bg-gray-100", text: "text-gray-600", border: "border-gray-200", label: "User" };
+  if (!role)
+    return {
+      bg: "bg-gray-100",
+      text: "text-gray-600",
+      border: "border-gray-200",
+      label: "User",
+    };
   const r = role.toLowerCase();
   if (r.includes("admin"))
-    return { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-700/15", label: role };
+    return {
+      bg: "bg-rose-50",
+      text: "text-rose-700",
+      border: "border-rose-700/15",
+      label: role,
+    };
   if (r.includes("dosen"))
-    return { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-700/15", label: role };
+    return {
+      bg: "bg-blue-50",
+      text: "text-blue-700",
+      border: "border-blue-700/15",
+      label: role,
+    };
   if (r.includes("mahasiswa"))
-    return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-700/15", label: role };
-  return { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-700/15", label: role };
+    return {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      border: "border-emerald-700/15",
+      label: role,
+    };
+  return {
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-700/15",
+    label: role,
+  };
 }
 
 interface AppModule {
@@ -86,7 +115,9 @@ interface MyModulesResponse {
 export default function Dashboard() {
   const [loadingApp, setLoadingApp] = useState<number | null>(null);
   const [selectedModule, setSelectedModule] = useState<AppModule | null>(null);
-  const [availableRoles, setAvailableRoles] = useState<{ role_id: number; role_name: string }[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<
+    { role_id: number; role_name: string }[]
+  >([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const { handleLogout, isPendingLogout } = useLogout();
   const navigate = useNavigate();
@@ -239,7 +270,8 @@ export default function Dashboard() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {Array.isArray(userData?.jabatans) && userData.jabatans.length > 0 ? (
+                    {Array.isArray(userData?.jabatans) &&
+                    userData.jabatans.length > 0 ? (
                       userData.jabatans.map((jab: string) => {
                         const badge = getRoleBadge(jab);
                         return (
@@ -318,7 +350,8 @@ export default function Dashboard() {
                       Unit: {userData.unit_name}
                     </div>
                   )}
-                  {Array.isArray(userData?.jabatans) && userData.jabatans.length > 0 ? (
+                  {Array.isArray(userData?.jabatans) &&
+                  userData.jabatans.length > 0 ? (
                     userData.jabatans.map((jab: string) => {
                       const badge = getRoleBadge(jab);
                       return (
@@ -493,8 +526,12 @@ export default function Dashboard() {
               Pilih Jabatan Akses
             </DialogTitle>
             <DialogDescription className="text-gray-500 font-medium text-xs mt-1">
-              Pilih salah satu jabatan Anda yang akan digunakan untuk mengakses modul{" "}
-              <strong className="text-emerald-600">{selectedModule?.name}</strong>.
+              Pilih salah satu jabatan Anda yang akan digunakan untuk mengakses
+              modul{" "}
+              <strong className="text-emerald-600">
+                {selectedModule?.name}
+              </strong>
+              .
             </DialogDescription>
           </DialogHeader>
 
