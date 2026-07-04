@@ -334,7 +334,7 @@ export default function Dashboard() {
                   <span className="text-emerald-600">
                     {isUserLoading
                       ? "..."
-                      : (userData?.name?.split(" ")[0] ?? "Anda")}
+                      : (userData?.name?.split(" ").slice(0, 2).join(" ") ?? "Anda")}
                   </span>{" "}
                   👋
                 </h2>
