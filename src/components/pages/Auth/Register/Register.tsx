@@ -412,7 +412,7 @@ export default function Register() {
                         value={idValue}
                         onChange={(e) => setIdValue(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleValidate()}
-                        maxLength={selectedRole?.idKey === "npm" ? 15 : 10}
+                        maxLength={selectedRole?.idKey === "npm" ? 12 : 10}
                         className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                       />
                       <p className="text-xs text-gray-400">
