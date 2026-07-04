@@ -13,9 +13,10 @@ import AuthLayout from "@/components/layouts/AuthLayout";
 import { useResetPassword } from "@/hooks/Auth/useResetPassword.ts";
 
 // ASSETS - Disesuaikan agar logonya konsisten dengan halaman Login & Dashboard
+const BASE_URL = import.meta.env.BASE_URL;
 const SIDE_IMAGE =
-  "https://uika-bogor.ac.id/uploads/files/surat-keterangan-semester-gasal-2023-2024.jpg";
-const LOGO = "/img/LOGO_UIKA_Terbaru2 (2).png"; // Pakai logo utama biar lebih bagus dari favicon
+  `${BASE_URL}img/ilustrasi-beasiswa-di-universitas-ibn-khaldun-uika-bogor-wii-tpsg.jpg`;
+const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 
 export default function ResetPassword() {
   const navigate = useNavigate();
