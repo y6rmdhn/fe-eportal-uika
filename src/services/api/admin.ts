@@ -16,6 +16,9 @@ const admin = {
       },
     });
   },
+  toggleActive(id: string) {
+    return network.patch(`/admins/${id}/toggle-active`);
+  },
   createUser(payload: Record<string, unknown>) {
     return network.post("/admins", payload);
   },
