@@ -11,6 +11,9 @@ const auth = {
   login(payload: loginForm) {
     return network.post("/auth/login", payload);
   },
+  checkIdExists(field: string, value: string) {
+    return network.get("/check-id", { params: { field, value } });
+  },
   register(payload: {
     email: string;
     password: string;

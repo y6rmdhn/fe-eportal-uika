@@ -106,17 +106,27 @@ type Step = 1 | 2 | 3;
 export default function Register() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
-  const [selectedRole, setSelectedRole] = useState<(typeof ROLES)[0] | null>(null);
+  const [selectedRole, setSelectedRole] = useState<(typeof ROLES)[0] | null>(
+    null,
+  );
   const [idValue, setIdValue] = useState("");
-  const [validatedData, setValidatedData] = useState<{ nama: string; nip?: string; nidn?: string } | null>(null);
+  const [validatedData, setValidatedData] = useState<{
+    nama: string;
+    nip?: string;
+    nidn?: string;
+  } | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [jabatans, setJabatans] = useState<{ id: number; nama_jabatan: string }[]>([]);
-  const [selectedJabatanId, setSelectedJabatanId] = useState<number | null>(null);
+  const [jabatans, setJabatans] = useState<
+    { id: number; nama_jabatan: string }[]
+  >([]);
+  const [selectedJabatanId, setSelectedJabatanId] = useState<number | null>(
+    null,
+  );
 
   const [form, setForm] = useState({
     email: "",
@@ -138,19 +148,21 @@ export default function Register() {
 
   // Fetch jabatans on mount
   useEffect(() => {
-    auth.getPublicJabatans().then((res) => {
-      const all = res.data?.data ?? [];
-      const filtered = all.filter((j: any) =>
-        j.nama_jabatan?.toLowerCase().includes("staf") ||
-        j.nama_jabatan?.toLowerCase().includes("staff") ||
-        j.nama_jabatan?.toLowerCase().includes("laboran") ||
-        j.nama_jabatan?.toLowerCase().includes("tata usaha") ||
-        j.nama_jabatan?.toLowerCase().includes("sekretaris") ||
-        j.nama_jabatan?.toLowerCase().includes("kepala bagian") ||
-        j.nama_jabatan?.toLowerCase().includes("kepala sub")
-      );
-      setJabatans(filtered);
-    }).catch(() => {});
+    auth
+      .getPublicJabatans()
+      .then((res) => {
+        const all = res.data?.data ?? [];
+        const filtered = all.filter((j: any) => {
+          const name = j.nama_jabatan?.toLowerCase() ?? "";
+          return (
+            !name.includes("mahasiswa") &&
+            !name.includes("dosen") &&
+            name !== "user"
+          );
+        });
+        setJabatans(filtered);
+      })
+      .catch(() => {});
   }, []);
 
   const handleSelectRole = (role: (typeof ROLES)[0]) => {
@@ -169,6 +181,17 @@ export default function Register() {
 
     setIsValidating(true);
     try {
+      // Step 1 — Cek dulu ke eportal apakah sudah terdaftar
+      const checkField = selectedRole?.idKey === "npm" ? "npm" : "nidn";
+      const checkRes = await auth.checkIdExists(checkField, idValue.trim());
+
+      if (checkRes.data?.exists) {
+        toast.error(`${selectedRole?.idLabel} sudah terdaftar. Silakan login.`);
+        setIsValidating(false);
+        return;
+      }
+
+      // Step 2 — Validasi ke SIAKAD/SIMPEG
       let res;
       if (selectedRole?.key === "Mahasiswa") {
         res = await auth.validateNpm(idValue.trim());
@@ -182,13 +205,20 @@ export default function Register() {
 
       if (data.valid) {
         setValidatedData(data.data);
-        toast.success(`${selectedRole?.idLabel} valid! Selamat datang, ${data.data.nama}`);
+        toast.success(
+          `${selectedRole?.idLabel} valid! Selamat datang, ${data.data.nama}`,
+        );
         setStep(3);
       } else {
-        toast.error(data.message || `${selectedRole?.idLabel} tidak ditemukan.`);
+        toast.error(
+          data.message || `${selectedRole?.idLabel} tidak ditemukan.`,
+        );
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || `${selectedRole?.idLabel} tidak ditemukan di sistem.`);
+      toast.error(
+        err.response?.data?.message ||
+          `${selectedRole?.idLabel} tidak ditemukan di sistem.`,
+      );
     } finally {
       setIsValidating(false);
     }
@@ -209,9 +239,18 @@ export default function Register() {
 
     // Validasi field wajib untuk Dosen Eksternal
     if (selectedRole?.formType === "dosenExt") {
-      if (!extForm.nama_lengkap.trim()) { toast.error("Nama lengkap wajib diisi."); return; }
-      if (!extForm.nik.trim()) { toast.error("NIK/NIP wajib diisi."); return; }
-      if (!extForm.instansi.trim()) { toast.error("Instansi wajib diisi."); return; }
+      if (!extForm.nama_lengkap.trim()) {
+        toast.error("Nama lengkap wajib diisi.");
+        return;
+      }
+      if (!extForm.nik.trim()) {
+        toast.error("NIK/NIP wajib diisi.");
+        return;
+      }
+      if (!extForm.instansi.trim()) {
+        toast.error("Instansi wajib diisi.");
+        return;
+      }
     }
 
     if (!form.email || !form.password || !form.password_confirmation) {
@@ -234,11 +273,15 @@ export default function Register() {
         password: form.password,
         password_confirmation: form.password_confirmation,
         role: selectedRole?.sendAsRole,
-        nidn: selectedRole?.idKey === "nidn" || selectedRole?.idKey === "nip" ? idValue : undefined,
+        nidn:
+          selectedRole?.idKey === "nidn" || selectedRole?.idKey === "nip"
+            ? idValue
+            : undefined,
         npm: selectedRole?.idKey === "npm" ? idValue : undefined,
-        nama: selectedRole?.key === "Mahasiswa_PMM"
-          ? form.nama_lengkap
-          : validatedData?.nama || undefined,
+        nama:
+          selectedRole?.key === "Mahasiswa_PMM"
+            ? form.nama_lengkap
+            : validatedData?.nama || undefined,
         jabatan_id: selectedJabatanId ?? undefined,
       };
 
@@ -280,16 +323,26 @@ export default function Register() {
           <div className="w-full lg:w-[48%] flex flex-col h-full p-8 sm:px-12 sm:py-10 overflow-y-auto">
             {/* Logo */}
             <div className="flex justify-start mb-6 shrink-0">
-              <Link to="/" className="inline-block transition-transform hover:scale-105">
-                <img src={LOGO} alt="Logo UIKA" className="h-12 object-contain" />
+              <Link
+                to="/"
+                className="inline-block transition-transform hover:scale-105"
+              >
+                <img
+                  src={LOGO}
+                  alt="Logo UIKA"
+                  className="h-12 object-contain"
+                />
               </Link>
             </div>
 
             {/* Title */}
             <div className="mb-6 shrink-0">
-              <h4 className="text-3xl font-extrabold text-gray-950 mb-2 tracking-tighter">Daftar Akun</h4>
+              <h4 className="text-3xl font-extrabold text-gray-950 mb-2 tracking-tighter">
+                Daftar Akun
+              </h4>
               <p className="text-gray-500 text-[14px] leading-relaxed">
-                Buat akun E-Portal UIKA untuk mengakses semua sistem informasi kampus.
+                Buat akun E-Portal UIKA untuk mengakses semua sistem informasi
+                kampus.
               </p>
             </div>
 
@@ -299,8 +352,12 @@ export default function Register() {
                   <CheckCircle2 size={40} className="text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-extrabold text-gray-900 mb-2">Pendaftaran Berhasil!</h4>
-                  <p className="text-gray-500 text-sm leading-relaxed">{successMessage}</p>
+                  <h4 className="text-2xl font-extrabold text-gray-900 mb-2">
+                    Pendaftaran Berhasil!
+                  </h4>
+                  <p className="text-gray-500 text-sm leading-relaxed">
+                    {successMessage}
+                  </p>
                   {selectedRole?.sendAsRole === "Dosen_Ext" && (
                     <p className="text-orange-600 text-xs mt-2 font-semibold">
                       Akun Anda akan diaktifkan setelah verifikasi admin.
@@ -325,15 +382,21 @@ export default function Register() {
                     return (
                       <div key={s} className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isDone ? "bg-emerald-600 text-white" : isActive ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400"}`}>
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${isDone ? "bg-emerald-600 text-white" : isActive ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-400"}`}
+                          >
                             {isDone ? <CheckCircle2 size={14} /> : s}
                           </div>
-                          <span className={`text-xs font-semibold hidden sm:block ${isActive ? "text-emerald-700" : isDone ? "text-emerald-600" : "text-gray-400"}`}>
+                          <span
+                            className={`text-xs font-semibold hidden sm:block ${isActive ? "text-emerald-700" : isDone ? "text-emerald-600" : "text-gray-400"}`}
+                          >
                             {label}
                           </span>
                         </div>
                         {i < stepLabels.length - 1 && (
-                          <div className={`flex-1 h-px w-8 ${step > s ? "bg-emerald-400" : "bg-gray-200"}`} />
+                          <div
+                            className={`flex-1 h-px w-8 ${step > s ? "bg-emerald-400" : "bg-gray-200"}`}
+                          />
                         )}
                       </div>
                     );
@@ -343,7 +406,9 @@ export default function Register() {
                 {/* ── STEP 1: Pilih Role ── */}
                 {step === 1 && (
                   <div className="flex-1 flex flex-col justify-start gap-3 overflow-y-auto">
-                    <p className="text-sm font-semibold text-gray-600 mb-1">Saya adalah:</p>
+                    <p className="text-sm font-semibold text-gray-600 mb-1">
+                      Saya adalah:
+                    </p>
                     {ROLES.map((role) => (
                       <button
                         key={role.key}
@@ -354,16 +419,26 @@ export default function Register() {
                           {role.icon}
                         </div>
                         <div>
-                          <p className="font-extrabold text-gray-900 text-[15px]">{role.label}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{role.desc}</p>
+                          <p className="font-extrabold text-gray-900 text-[15px]">
+                            {role.label}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {role.desc}
+                          </p>
                         </div>
-                        <ChevronRight size={18} className="ml-auto text-gray-300 group-hover:text-emerald-500 transition-all" />
+                        <ChevronRight
+                          size={18}
+                          className="ml-auto text-gray-300 group-hover:text-emerald-500 transition-all"
+                        />
                       </button>
                     ))}
                     <div className="mt-2 text-center shrink-0">
                       <p className="text-sm text-gray-500">
                         Sudah punya akun?{" "}
-                        <Link to="/login" className="text-emerald-600 font-bold hover:text-emerald-700">
+                        <Link
+                          to="/login"
+                          className="text-emerald-600 font-bold hover:text-emerald-700"
+                        >
                           Masuk di sini
                         </Link>
                       </p>
@@ -375,13 +450,18 @@ export default function Register() {
                 {step === 2 && (
                   <div className="flex-1 flex flex-col justify-center gap-5">
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                      <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Role Dipilih</p>
-                      <p className="font-extrabold text-gray-900">{selectedRole?.label}</p>
+                      <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">
+                        Role Dipilih
+                      </p>
+                      <p className="font-extrabold text-gray-900">
+                        {selectedRole?.label}
+                      </p>
                     </div>
 
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">
-                        {selectedRole?.idLabel} <span className="text-rose-500">*</span>
+                        {selectedRole?.idLabel}{" "}
+                        <span className="text-rose-500">*</span>
                       </label>
                       <Input
                         placeholder={selectedRole?.placeholder}
@@ -392,12 +472,20 @@ export default function Register() {
                         className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                       />
                       <p className="text-xs text-gray-400">
-                        Masukkan {selectedRole?.idLabel} yang terdaftar di sistem UIKA.
+                        Masukkan {selectedRole?.idLabel} yang terdaftar di
+                        sistem UIKA.
                       </p>
                     </div>
 
                     <div className="flex gap-3">
-                      <Button variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => { setStep(1); setIdValue(""); }}>
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-11 rounded-xl"
+                        onClick={() => {
+                          setStep(1);
+                          setIdValue("");
+                        }}
+                      >
                         <ChevronLeft size={16} className="mr-1" /> Kembali
                       </Button>
                       <Button
@@ -405,8 +493,10 @@ export default function Register() {
                         onClick={handleValidate}
                         disabled={isValidating}
                       >
-                        {isValidating ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-                        {isValidating ? "Memvalidasi..." : "Validasi"}
+                        {isValidating ? (
+                          <Loader2 size={16} className="animate-spin mr-2" />
+                        ) : null}
+                        {isValidating ? "Memvalidasi..." : "Next"}
                       </Button>
                     </div>
                   </div>
@@ -417,21 +507,37 @@ export default function Register() {
                   <div className="flex-1 flex flex-col justify-center gap-4">
                     {selectedRole?.skipValidation ? (
                       <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100 flex items-center gap-3">
-                        <CheckCircle2 size={20} className="text-orange-600 shrink-0" />
+                        <CheckCircle2
+                          size={20}
+                          className="text-orange-600 shrink-0"
+                        />
                         <div>
-                          <p className="text-xs font-bold text-orange-700 uppercase tracking-wider">{selectedRole?.label}</p>
+                          <p className="text-xs font-bold text-orange-700 uppercase tracking-wider">
+                            {selectedRole?.label}
+                          </p>
                           {selectedRole?.formType === "dosenExt" && (
-                            <p className="text-xs text-gray-500">Akun akan menunggu verifikasi admin.</p>
+                            <p className="text-xs text-gray-500">
+                              Akun akan menunggu verifikasi admin.
+                            </p>
                           )}
                         </div>
                       </div>
                     ) : (
                       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
-                        <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                        <CheckCircle2
+                          size={20}
+                          className="text-emerald-600 shrink-0"
+                        />
                         <div>
-                          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Terverifikasi</p>
-                          <p className="font-extrabold text-gray-900 text-sm">{validatedData?.nama}</p>
-                          <p className="text-xs text-gray-500">{selectedRole?.idLabel}: {idValue}</p>
+                          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                            Terverifikasi
+                          </p>
+                          <p className="font-extrabold text-gray-900 text-sm">
+                            {validatedData?.nama}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {selectedRole?.idLabel}: {idValue}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -441,32 +547,37 @@ export default function Register() {
                       {selectedRole?.key === "Mahasiswa_PMM" && (
                         <div className="space-y-1.5">
                           <label className="text-sm font-semibold text-gray-700">
-                            Nama Lengkap <span className="text-rose-500">*</span>
+                            Nama Lengkap{" "}
+                            <span className="text-rose-500">*</span>
                           </label>
                           <Input
                             placeholder="Nama lengkap"
                             value={form.nama_lengkap}
-                            onChange={(e) => setForm({ ...form, nama_lengkap: e.target.value })}
+                            onChange={(e) =>
+                              setForm({ ...form, nama_lengkap: e.target.value })
+                            }
                             className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                           />
                         </div>
                       )}
 
                       {/* NPM opsional — khusus Mahasiswa PMM */}
-                      {selectedRole?.formType === "simple" && selectedRole?.skipValidation && (
-                        <div className="space-y-1.5">
-                          <label className="text-sm font-semibold text-gray-700">
-                            {selectedRole?.idLabel}{" "}<span className="text-rose-500">*</span>
-                          </label>
-                          <Input
-                            placeholder={selectedRole?.placeholder}
-                            value={idValue}
-                            onChange={(e) => setIdValue(e.target.value)}
-                            maxLength={12}
-                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                          />
-                        </div>
-                      )}
+                      {selectedRole?.formType === "simple" &&
+                        selectedRole?.skipValidation && (
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">
+                              {selectedRole?.idLabel}{" "}
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Input
+                              placeholder={selectedRole?.placeholder}
+                              value={idValue}
+                              onChange={(e) => setIdValue(e.target.value)}
+                              maxLength={12}
+                              className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
+                          </div>
+                        )}
 
                       {/* Dropdown Jabatan — khusus Pegawai */}
                       {selectedRole?.key === "Pegawai" && (
@@ -476,12 +587,18 @@ export default function Register() {
                           </label>
                           <select
                             value={selectedJabatanId ?? ""}
-                            onChange={(e) => setSelectedJabatanId(Number(e.target.value) || null)}
+                            onChange={(e) =>
+                              setSelectedJabatanId(
+                                Number(e.target.value) || null,
+                              )
+                            }
                             className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:border-emerald-500 focus:outline-none bg-gray-50/50"
                           >
                             <option value="">Pilih Jabatan...</option>
                             {jabatans.map((j) => (
-                              <option key={j.id} value={j.id}>{j.nama_jabatan}</option>
+                              <option key={j.id} value={j.id}>
+                                {j.nama_jabatan}
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -491,78 +608,231 @@ export default function Register() {
                       {selectedRole?.formType === "dosenExt" && (
                         <>
                           <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700">Nama Lengkap <span className="text-rose-500">*</span></label>
-                            <Input placeholder="Nama lengkap dengan gelar" value={extForm.nama_lengkap} onChange={(e) => setExtForm({ ...extForm, nama_lengkap: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                            <label className="text-sm font-semibold text-gray-700">
+                              Nama Lengkap{" "}
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Input
+                              placeholder="Nama lengkap dengan gelar"
+                              value={extForm.nama_lengkap}
+                              onChange={(e) =>
+                                setExtForm({
+                                  ...extForm,
+                                  nama_lengkap: e.target.value,
+                                })
+                              }
+                              className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700">Instansi Asal <span className="text-rose-500">*</span></label>
-                            <Input placeholder="Nama institusi/kampus asal" value={extForm.instansi} onChange={(e) => setExtForm({ ...extForm, instansi: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                            <label className="text-sm font-semibold text-gray-700">
+                              Instansi Asal{" "}
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Input
+                              placeholder="Nama institusi/kampus asal"
+                              value={extForm.instansi}
+                              onChange={(e) =>
+                                setExtForm({
+                                  ...extForm,
+                                  instansi: e.target.value,
+                                })
+                              }
+                              className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">Jenis Kelamin</label>
-                              <select value={extForm.jenkel} onChange={(e) => setExtForm({ ...extForm, jenkel: e.target.value })} className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none">
+                              <label className="text-sm font-semibold text-gray-700">
+                                Jenis Kelamin
+                              </label>
+                              <select
+                                value={extForm.jenkel}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    jenkel: e.target.value,
+                                  })
+                                }
+                                className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:outline-none"
+                              >
                                 <option value="">Pilih</option>
                                 <option value="L">Laki-laki</option>
                                 <option value="P">Perempuan</option>
                               </select>
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">Tanggal Lahir</label>
-                              <Input type="date" value={extForm.tanggal_lahir} onChange={(e) => setExtForm({ ...extForm, tanggal_lahir: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                              <label className="text-sm font-semibold text-gray-700">
+                                Tanggal Lahir
+                              </label>
+                              <Input
+                                type="date"
+                                value={extForm.tanggal_lahir}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    tanggal_lahir: e.target.value,
+                                  })
+                                }
+                                className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">Tempat Lahir</label>
-                              <Input placeholder="Kota lahir" value={extForm.tempat_lahir} onChange={(e) => setExtForm({ ...extForm, tempat_lahir: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                              <label className="text-sm font-semibold text-gray-700">
+                                Tempat Lahir
+                              </label>
+                              <Input
+                                placeholder="Kota lahir"
+                                value={extForm.tempat_lahir}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    tempat_lahir: e.target.value,
+                                  })
+                                }
+                                className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">Agama</label>
-                              <Input placeholder="Agama" value={extForm.agama} onChange={(e) => setExtForm({ ...extForm, agama: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                              <label className="text-sm font-semibold text-gray-700">
+                                Agama
+                              </label>
+                              <Input
+                                placeholder="Agama"
+                                value={extForm.agama}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    agama: e.target.value,
+                                  })
+                                }
+                                className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">No HP</label>
-                              <Input placeholder="08xxxxxxxxxx" value={extForm.no_hp} onChange={(e) => setExtForm({ ...extForm, no_hp: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                              <label className="text-sm font-semibold text-gray-700">
+                                No HP
+                              </label>
+                              <Input
+                                placeholder="08xxxxxxxxxx"
+                                value={extForm.no_hp}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    no_hp: e.target.value,
+                                  })
+                                }
+                                className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-sm font-semibold text-gray-700">NIK/NIP <span className="text-rose-500">*</span></label>
-                              <Input placeholder="Nomor identitas" value={extForm.nik} onChange={(e) => setExtForm({ ...extForm, nik: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                              <label className="text-sm font-semibold text-gray-700">
+                                NIK/NIP <span className="text-rose-500">*</span>
+                              </label>
+                              <Input
+                                placeholder="Nomor identitas"
+                                value={extForm.nik}
+                                onChange={(e) =>
+                                  setExtForm({
+                                    ...extForm,
+                                    nik: e.target.value,
+                                  })
+                                }
+                                className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                              />
                             </div>
                           </div>
                         </>
                       )}
 
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700">Email <span className="text-rose-500">*</span></label>
-                        <Input type="email" placeholder="nama@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20" />
+                        <label className="text-sm font-semibold text-gray-700">
+                          Email <span className="text-rose-500">*</span>
+                        </label>
+                        <Input
+                          type="email"
+                          placeholder="nama@email.com"
+                          value={form.email}
+                          onChange={(e) =>
+                            setForm({ ...form, email: e.target.value })
+                          }
+                          className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700">Password <span className="text-rose-500">*</span></label>
+                        <label className="text-sm font-semibold text-gray-700">
+                          Password <span className="text-rose-500">*</span>
+                        </label>
                         <div className="relative">
-                          <Input type={showPassword ? "text" : "password"} placeholder="Minimal 8 karakter" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20 pr-10" />
-                          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowPassword(!showPassword)}>
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Minimal 8 karakter"
+                            value={form.password}
+                            onChange={(e) =>
+                              setForm({ ...form, password: e.target.value })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20 pr-10"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
                           </button>
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-700">Konfirmasi Password <span className="text-rose-500">*</span></label>
+                        <label className="text-sm font-semibold text-gray-700">
+                          Konfirmasi Password{" "}
+                          <span className="text-rose-500">*</span>
+                        </label>
                         <div className="relative">
-                          <Input type={showConfirm ? "text" : "password"} placeholder="Ulangi password" value={form.password_confirmation} onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })} className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20 pr-10" />
-                          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowConfirm(!showConfirm)}>
-                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                          <Input
+                            type={showConfirm ? "text" : "password"}
+                            placeholder="Ulangi password"
+                            value={form.password_confirmation}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                password_confirmation: e.target.value,
+                              })
+                            }
+                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20 pr-10"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            onClick={() => setShowConfirm(!showConfirm)}
+                          >
+                            {showConfirm ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
                           </button>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex gap-3 mt-2">
-                      <Button variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => setStep(selectedRole?.skipValidation ? 1 : 2)}>
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-11 rounded-xl"
+                        onClick={() =>
+                          setStep(selectedRole?.skipValidation ? 1 : 2)
+                        }
+                      >
                         <ChevronLeft size={16} className="mr-1" /> Kembali
                       </Button>
                       <Button
@@ -570,7 +840,9 @@ export default function Register() {
                         onClick={handleRegister}
                         disabled={isRegistering}
                       >
-                        {isRegistering ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+                        {isRegistering ? (
+                          <Loader2 size={16} className="animate-spin mr-2" />
+                        ) : null}
                         {isRegistering ? "Mendaftar..." : "Buat Akun"}
                       </Button>
                     </div>
@@ -596,14 +868,22 @@ function HeroSlider() {
         effect="fade"
         speed={1000}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
-        pagination={{ clickable: true, bulletClass: "swiper-bullet-custom", bulletActiveClass: "swiper-bullet-custom-active" }}
+        pagination={{
+          clickable: true,
+          bulletClass: "swiper-bullet-custom",
+          bulletActiveClass: "swiper-bullet-custom-active",
+        }}
         loop={true}
         className="w-full h-full absolute inset-0"
       >
         {slides.map((slide, index) => (
           <SwiperSlide key={index}>
             <div className="relative w-full h-full">
-              <img src={slide.image} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/70 to-transparent via-50% z-10" />
               <div className="absolute bottom-0 left-0 right-0 z-20 p-12 w-full flex flex-col justify-end h-full">
                 <div className="max-w-md mb-8">
@@ -614,20 +894,28 @@ function HeroSlider() {
                     </span>
                     E-Portal UIKA
                   </span>
-                  <h5 className="text-2xl font-extrabold text-white mb-2 tracking-tight drop-shadow-sm">{slide.title}</h5>
-                  <p className="text-emerald-100/90 text-[15px] leading-relaxed drop-shadow-sm line-clamp-3 font-medium">{slide.body}</p>
+                  <h5 className="text-2xl font-extrabold text-white mb-2 tracking-tight drop-shadow-sm">
+                    {slide.title}
+                  </h5>
+                  <p className="text-emerald-100/90 text-[15px] leading-relaxed drop-shadow-sm line-clamp-3 font-medium">
+                    {slide.body}
+                  </p>
                 </div>
               </div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .swiper-pagination { text-align: left !important; padding-left: 3rem !important; padding-bottom: 2.5rem !important; }
         .swiper-bullet-custom { width: 8px; height: 6px; display: inline-block; border-radius: 9999px; background: rgba(255, 255, 255, 0.3); margin-right: 8px; cursor: pointer; transition: all 0.5s ease; }
         .swiper-bullet-custom:hover { background: rgba(255, 255, 255, 0.6); }
         .swiper-bullet-custom-active { background: #ffffff; width: 36px; }
-      `}} />
+      `,
+        }}
+      />
     </div>
   );
 }
