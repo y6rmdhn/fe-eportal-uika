@@ -70,11 +70,68 @@ const useExportImportUser = (
   };
 
   const downloadTemplate = () => {
-    const headers = ["Email", "Role", "NPM", "NIDN"];
+    const headers = [
+      "Email",
+      "Password",
+      "Role",
+      "Nama",
+      "NPM",
+      "NIDN",
+      "Jabatan",
+      "Unit",
+    ];
 
     const exampleData = [
-      ["mahasiswa@example.com", "Mahasiswa", "2256232494", ""],
-      ["dosen@example.com", "Dosen", "", "0123456789"],
+      [
+        "mahasiswa@example.com",
+        "password123",
+        "Mahasiswa",
+        "Budi Santoso",
+        "221106040001",
+        "",
+        "",
+        "FT_TI",
+      ],
+      [
+        "dosen@example.com",
+        "password123",
+        "Dosen",
+        "Dr. Ahmad Fauzi",
+        "",
+        "0406116206",
+        "",
+        "FTS",
+      ],
+      [
+        "pegawai@example.com",
+        "password123",
+        "Pegawai",
+        "Siti Rahma",
+        "",
+        "",
+        "Staf Akademik",
+        "BAAK",
+      ],
+      [
+        "pmm@example.com",
+        "password123",
+        "Mahasiswa",
+        "John Doe PMM",
+        "221106040002",
+        "",
+        "",
+        "",
+      ],
+      [
+        "dosenext@example.com",
+        "password123",
+        "Dosen_Ext",
+        "Prof. Smith",
+        "",
+        "",
+        "",
+        "",
+      ],
     ];
 
     const csvContent = [
