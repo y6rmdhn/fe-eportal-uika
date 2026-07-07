@@ -1,8 +1,10 @@
 import admin from "@/services/api/admin";
+import auth from "@/services/api/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRef } from "react";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
 
 const useExportImportUser = (
   currentSearch?: string,
@@ -32,7 +34,6 @@ const useExportImportUser = (
     onSuccess: () => toast.success("Export berhasil"),
     onError: (error) => {
       if (error instanceof AxiosError) {
-        console.log("Export error:", error.response);
         toast.error(error.response?.data?.message || "Gagal export");
       }
     },
@@ -78,19 +79,10 @@ const useExportImportUser = (
     }
   };
 
-  const downloadTemplate = () => {
-    const headers = [
-      "Email",
-      "Password",
-      "Role",
-      "Nama",
-      "NPM",
-      "NIDN",
-      "Jabatan",
-      "Unit",
-    ];
-
-    const exampleData = [
+  const downloadTemplate = async () => {
+    // ── Sheet 1: Data User ──
+    const dataSheet = XLSX.utils.aoa_to_sheet([
+      ["Email", "Password", "Role", "Nama", "NPM", "NIDN", "Jabatan", "Unit"],
       [
         "mahasiswa@example.com",
         "password123",
@@ -141,22 +133,46 @@ const useExportImportUser = (
         "",
         "",
       ],
+    ]);
+    dataSheet["!cols"] = [
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 15 },
     ];
 
-    const csvContent = [
-      headers.join(","),
-      ...exampleData.map((row) => row.join(",")),
-    ].join("\n");
+    // ── Sheet 2: Referensi Jabatan ──
+    const jabatanRes = await auth.getPublicJabatans();
+    const jabatanList = jabatanRes.data?.data ?? [];
+    const jabatanRows = jabatanList.map((j: any) => {
+      return [j.nama_jabatan];
+    });
+    const jabatanSheet = XLSX.utils.aoa_to_sheet([
+      ["Nama Jabatan (salin ke kolom Jabatan)"],
+      ...jabatanRows,
+    ]);
+    jabatanSheet["!cols"] = [{ wch: 40 }];
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "template-import-user.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+    // ── Sheet 3: Referensi Unit ──
+    const unitRes = await auth.getPublicUnits();
+    const unitList = unitRes.data?.data ?? [];
+    const unitRows = unitList.map((u: any) => [u.code, u.nama_unit]);
+    const unitSheet = XLSX.utils.aoa_to_sheet([
+      ["Kode Unit (isi di kolom Unit)", "Nama Unit"],
+      ...unitRows,
+    ]);
+    unitSheet["!cols"] = [{ wch: 20 }, { wch: 40 }];
+
+    // ── Buat workbook & download ──
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, dataSheet, "Data User");
+    XLSX.utils.book_append_sheet(wb, jabatanSheet, "Referensi Jabatan");
+    XLSX.utils.book_append_sheet(wb, unitSheet, "Referensi Unit");
+    XLSX.writeFile(wb, "template-import-user.xlsx");
   };
 
   return {
