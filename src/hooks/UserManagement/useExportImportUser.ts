@@ -45,11 +45,20 @@ const useExportImportUser = (
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user-management"] });
-      const failed = data.data?.failed?.length ?? 0;
-      if (failed > 0) {
-        toast.success(`Import selesai. ${failed} data gagal diimport.`);
+      const imported = data.data?.imported ?? 0;
+      const failed = data.data?.failed ?? [];
+
+      if (failed.length > 0) {
+        // Tampilkan sukses dulu
+        if (imported > 0) {
+          toast.success(`${imported} data berhasil diimport.`);
+        }
+        // Tampilkan detail yang gagal
+        failed.forEach((f: { email: string; reason: string }) => {
+          toast.error(`${f.email}: ${f.reason}`, { duration: 6000 });
+        });
       } else {
-        toast.success(data.message);
+        toast.success(`${imported} data berhasil diimport.`);
       }
     },
     onError: (error) => {

@@ -109,7 +109,7 @@ export default function Register() {
   const [selectedRole, setSelectedRole] = useState<(typeof ROLES)[0] | null>(null);
   const [idValue, setIdValue] = useState("");
   const [validatedData, setValidatedData] = useState<{ nama: string; nip?: string; nidn?: string } | null>(null);
-  const [unitKerja, setUnitKerja] = useState<{ kode: string; nama: string } | null>(null); // ← tambah
+  const [unitKerja, setUnitKerja] = useState<{ kode: string; nama: string } | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -117,7 +117,9 @@ export default function Register() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [jabatans, setJabatans] = useState<{ id: number; nama_jabatan: string }[]>([]);
+  const [units, setUnits] = useState<{ id: number; code: string; nama_unit: string }[]>([]);
   const [selectedJabatanId, setSelectedJabatanId] = useState<number | null>(null);
+  const [selectedUnitCode, setSelectedUnitCode] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     email: "",
@@ -138,6 +140,10 @@ export default function Register() {
   });
 
   useEffect(() => {
+    auth.getPublicUnits().then((res) => {
+      setUnits(res.data?.data ?? []);
+    }).catch(() => {});
+
     auth.getPublicJabatans().then((res) => {
       const all = res.data?.data ?? [];
       const filtered = all.filter((j: any) => {
@@ -154,8 +160,9 @@ export default function Register() {
     setSelectedRole(role);
     setIdValue("");
     setValidatedData(null);
-    setUnitKerja(null); // ← reset unit
+    setUnitKerja(null);
     setSelectedJabatanId(null);
+    setSelectedUnitCode(null);
     setStep(role.skipValidation ? 3 : 2);
   };
 
@@ -177,7 +184,6 @@ export default function Register() {
         return;
       }
 
-      // Validasi ke SIAKAD/SIMPEG
       let res;
       if (selectedRole?.key === "Mahasiswa") {
         res = await auth.validateNpm(idValue.trim());
@@ -191,7 +197,6 @@ export default function Register() {
 
       if (data.valid) {
         setValidatedData(data.data);
-        // Simpan unit_kerja kalau ada (Dosen & Pegawai dari SIMPEG)
         if (data.data.unit_kerja) {
           setUnitKerja({
             kode: data.data.unit_kerja.kode,
@@ -242,6 +247,8 @@ export default function Register() {
 
     setIsRegistering(true);
     try {
+      const unitNama = unitKerja?.nama ?? units.find(u => u.code === selectedUnitCode)?.nama_unit ?? undefined;
+
       const payload: any = {
         email: form.email,
         password: form.password,
@@ -253,8 +260,8 @@ export default function Register() {
           ? form.nama_lengkap
           : validatedData?.nama || undefined,
         jabatan_id: selectedJabatanId ?? undefined,
-        unit_code: unitKerja?.kode ?? undefined, // ← dari SIMPEG
-        unit_nama: unitKerja?.nama ?? undefined, // ← dari SIMPEG
+        unit_code: unitKerja?.kode ?? selectedUnitCode ?? undefined,
+        unit_nama: unitNama,
       };
 
       if (selectedRole?.formType === "dosenExt") {
@@ -329,6 +336,7 @@ export default function Register() {
               </div>
             ) : (
               <>
+                {/* Step Indicator */}
                 <div className="flex items-center gap-2 mb-8 shrink-0">
                   {stepLabels.map((label, i) => {
                     const s = i + 1;
@@ -352,7 +360,7 @@ export default function Register() {
                   })}
                 </div>
 
-                {/* ── STEP 1: Pilih Role ── */}
+                {/* ── STEP 1 ── */}
                 {step === 1 && (
                   <div className="flex-1 flex flex-col justify-start gap-3 overflow-y-auto">
                     <p className="text-sm font-semibold text-gray-600 mb-1">Saya adalah:</p>
@@ -383,7 +391,7 @@ export default function Register() {
                   </div>
                 )}
 
-                {/* ── STEP 2: Validasi ── */}
+                {/* ── STEP 2 ── */}
                 {step === 2 && (
                   <div className="flex-1 flex flex-col justify-center gap-5">
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
@@ -424,7 +432,7 @@ export default function Register() {
                   </div>
                 )}
 
-                {/* ── STEP 3: Buat Akun ── */}
+                {/* ── STEP 3 ── */}
                 {step === 3 && (
                   <div className="flex-1 flex flex-col justify-center gap-4">
                     {selectedRole?.skipValidation ? (
@@ -444,7 +452,6 @@ export default function Register() {
                           <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Terverifikasi</p>
                           <p className="font-extrabold text-gray-900 text-sm">{validatedData?.nama}</p>
                           <p className="text-xs text-gray-500">{selectedRole?.idLabel}: {idValue}</p>
-                          {/* Tampilkan unit kalau ada */}
                           {unitKerja && (
                             <p className="text-xs text-emerald-600 font-semibold mt-1">
                               Unit: {unitKerja.nama}
@@ -484,6 +491,26 @@ export default function Register() {
                             maxLength={12}
                             className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
                           />
+                        </div>
+                      )}
+
+                      {/* Dropdown Unit — khusus Dosen Ext & Mahasiswa PMM */}
+                      {(selectedRole?.key === "Dosen_Ext" || selectedRole?.key === "Mahasiswa_PMM") && (
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Unit / Prodi{" "}
+                            <span className="text-gray-400 text-xs font-normal">(opsional)</span>
+                          </label>
+                          <select
+                            value={selectedUnitCode ?? ""}
+                            onChange={(e) => setSelectedUnitCode(e.target.value || null)}
+                            className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:border-emerald-500 focus:outline-none bg-gray-50/50"
+                          >
+                            <option value="">Pilih Unit/Prodi...</option>
+                            {units.map((u) => (
+                              <option key={u.id} value={u.code}>{u.nama_unit}</option>
+                            ))}
+                          </select>
                         </div>
                       )}
 
