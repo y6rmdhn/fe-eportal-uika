@@ -170,7 +170,7 @@ export default function Register() {
           const name = j.nama_jabatan?.toLowerCase() ?? "";
           return (
             !name.includes("mahasiswa") &&
-            !name.includes("dosen") &&
+            !name.includes("admin") &&
             name !== "user"
           );
         });
