@@ -78,7 +78,7 @@ const ROLES = [
   {
     key: "Mahasiswa_PMM",
     sendAsRole: "Mahasiswa",
-    label: "Mahasiswa PMM",
+    label: "Mahasiswa External",
     desc: "Mahasiswa pertukaran dari luar UIKA",
     icon: <GraduationCap size={28} className="text-orange-600" />,
     idLabel: "NPM",
@@ -164,9 +164,7 @@ export default function Register() {
         const allUnits = res.data?.data ?? [];
         // Filter hanya prodi: code mengandung underscore, misal FT_TI, FH_IH, dst.
         // Fakultas/biro/unit lain (Univ, FTS, FH, BAAK, dst) tidak punya underscore.
-        const prodiOnly = allUnits.filter((u: any) =>
-          u.code?.includes("_"),
-        );
+        const prodiOnly = allUnits.filter((u: any) => u.code?.includes("_"));
         setUnits(prodiOnly);
       })
       .catch(() => {});
@@ -290,7 +288,7 @@ export default function Register() {
         return;
       }
       if (!extForm.nik.trim()) {
-        toast.error("NIK/NIP wajib diisi.");
+        toast.error("NIK wajib diisi.");
         return;
       }
       if (!extForm.instansi.trim()) {
@@ -337,8 +335,7 @@ export default function Register() {
         unit_code: unitKerja?.kode ?? selectedUnitCode ?? undefined,
         unit_nama: unitNama,
         // BARU: kirim asal universitas khusus Mahasiswa PMM
-        asal_univ:
-          selectedRole?.key === "Mahasiswa_PMM" ? asalUniv : undefined,
+        asal_univ: selectedRole?.key === "Mahasiswa_PMM" ? asalUniv : undefined,
       };
 
       if (selectedRole?.formType === "dosenExt") {
@@ -842,7 +839,7 @@ export default function Register() {
                             </div>
                             <div className="space-y-1.5">
                               <label className="text-sm font-semibold text-gray-700">
-                                NIK/NIP <span className="text-rose-500">*</span>
+                                NIK <span className="text-rose-500">*</span>
                               </label>
                               <Input
                                 placeholder="Nomor identitas"
