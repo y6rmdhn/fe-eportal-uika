@@ -107,7 +107,7 @@ const UserManagement = () => {
             key={`id-${index}`}
             className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
           >
-            {user.nidn || user.npm || "-"}
+            {user.nidn ?? user.npm ?? user.nik ?? "-"}
           </span>,
 
           // Role / Jabatan — tampilkan dari array roles aktual (Spatie)

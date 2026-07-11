@@ -136,6 +136,9 @@ export default function Register() {
   );
   const [selectedUnitCode, setSelectedUnitCode] = useState<string | null>(null);
 
+  // BARU: state buat Asal Universitas (khusus Mahasiswa PMM)
+  const [asalUniv, setAsalUniv] = useState("");
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -158,7 +161,13 @@ export default function Register() {
     auth
       .getPublicUnits()
       .then((res) => {
-        setUnits(res.data?.data ?? []);
+        const allUnits = res.data?.data ?? [];
+        // Filter hanya prodi: code mengandung underscore, misal FT_TI, FH_IH, dst.
+        // Fakultas/biro/unit lain (Univ, FTS, FH, BAAK, dst) tidak punya underscore.
+        const prodiOnly = allUnits.filter((u: any) =>
+          u.code?.includes("_"),
+        );
+        setUnits(prodiOnly);
       })
       .catch(() => {});
 
@@ -186,6 +195,7 @@ export default function Register() {
     setUnitKerja(null);
     setSelectedJabatanId(null);
     setSelectedUnitCode(null);
+    setAsalUniv(""); // BARU: reset asal univ tiap ganti role
     setStep(role.skipValidation ? 3 : 2);
   };
 
@@ -257,6 +267,18 @@ export default function Register() {
       return;
     }
 
+    // BARU: validasi Asal Universitas wajib diisi untuk Mahasiswa PMM
+    if (selectedRole?.key === "Mahasiswa_PMM" && !asalUniv.trim()) {
+      toast.error("Asal universitas wajib diisi.");
+      return;
+    }
+
+    // BARU: validasi Unit/Prodi Tujuan wajib dipilih untuk Mahasiswa PMM
+    if (selectedRole?.key === "Mahasiswa_PMM" && !selectedUnitCode) {
+      toast.error("Prodi tujuan wajib dipilih.");
+      return;
+    }
+
     if (selectedRole?.key === "Pegawai" && !selectedJabatanId) {
       toast.error("Jabatan wajib dipilih.");
       return;
@@ -314,6 +336,9 @@ export default function Register() {
         jabatan_id: selectedJabatanId ?? undefined,
         unit_code: unitKerja?.kode ?? selectedUnitCode ?? undefined,
         unit_nama: unitNama,
+        // BARU: kirim asal universitas khusus Mahasiswa PMM
+        asal_univ:
+          selectedRole?.key === "Mahasiswa_PMM" ? asalUniv : undefined,
       };
 
       if (selectedRole?.formType === "dosenExt") {
@@ -577,22 +602,41 @@ export default function Register() {
                     )}
 
                     <div className="space-y-3">
-                      {/* Nama Lengkap — khusus Mahasiswa PMM */}
+                      {/* Nama Lengkap + Asal Universitas — khusus Mahasiswa PMM */}
                       {selectedRole?.key === "Mahasiswa_PMM" && (
-                        <div className="space-y-1.5">
-                          <label className="text-sm font-semibold text-gray-700">
-                            Nama Lengkap{" "}
-                            <span className="text-rose-500">*</span>
-                          </label>
-                          <Input
-                            placeholder="Nama lengkap"
-                            value={form.nama_lengkap}
-                            onChange={(e) =>
-                              setForm({ ...form, nama_lengkap: e.target.value })
-                            }
-                            className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
-                          />
-                        </div>
+                        <>
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">
+                              Nama Lengkap{" "}
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Input
+                              placeholder="Nama lengkap"
+                              value={form.nama_lengkap}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  nama_lengkap: e.target.value,
+                                })
+                              }
+                              className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
+                          </div>
+
+                          {/* BARU: Asal Universitas */}
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">
+                              Asal Universitas{" "}
+                              <span className="text-rose-500">*</span>
+                            </label>
+                            <Input
+                              placeholder="Nama universitas asal"
+                              value={asalUniv}
+                              onChange={(e) => setAsalUniv(e.target.value)}
+                              className="h-11 rounded-xl border-gray-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            />
+                          </div>
+                        </>
                       )}
 
                       {/* NPM opsional — khusus Mahasiswa PMM */}
@@ -615,15 +659,19 @@ export default function Register() {
                           </div>
                         )}
 
-                      {/* Dropdown Unit — khusus Dosen Ext & Mahasiswa PMM */}
+                      {/* Dropdown Unit — khusus Dosen Ext & Mahasiswa PMM (unit/prodi tujuan di UIKA) */}
                       {(selectedRole?.key === "Dosen_Ext" ||
                         selectedRole?.key === "Mahasiswa_PMM") && (
                         <div className="space-y-1.5">
                           <label className="text-sm font-semibold text-gray-700">
-                            Unit / Prodi{" "}
-                            <span className="text-gray-400 text-xs font-normal">
-                              (opsional)
-                            </span>
+                            Prodi Tujuan{" "}
+                            {selectedRole?.key === "Mahasiswa_PMM" ? (
+                              <span className="text-rose-500">*</span>
+                            ) : (
+                              <span className="text-gray-400 text-xs font-normal">
+                                (opsional)
+                              </span>
+                            )}
                           </label>
                           <select
                             value={selectedUnitCode ?? ""}
@@ -632,7 +680,7 @@ export default function Register() {
                             }
                             className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm focus:border-emerald-500 focus:outline-none bg-gray-50/50"
                           >
-                            <option value="">Pilih Unit/Prodi...</option>
+                            <option value="">Pilih Prodi...</option>
                             {units.map((u) => (
                               <option key={u.id} value={u.code}>
                                 {u.nama_unit}
