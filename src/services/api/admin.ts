@@ -86,6 +86,17 @@ const admin = {
   ) {
     return network.get(`/admins/${id}/activity-logs`, { params });
   },
+  getAllActivityLogs(params?: {
+    type?: string;
+    exclude_types?: string;
+    date_from?: string;
+    date_to?: string;
+    search?: string;
+    per_page?: number;
+    page?: number;
+  }) {
+    return network.get("/admins/activity-logs", { params });
+  },
 
   // ─── App Modules ───────────────────────────────────────────────────────────
   getAppModules() {
@@ -111,8 +122,17 @@ const admin = {
   getRoles() {
     return network.get("/admins/roles");
   },
-  getUnits() {
-    return network.get("/admins/units");
+  getUnits(params?: { per_page?: number; page?: number; search?: string }) {
+    return network.get("/admins/units", { params });
+  },
+  createUnit(payload: { code: string; nama_unit: string }) {
+    return network.post("/admins/units", payload);
+  },
+  updateUnit(id: number, payload: { code: string; nama_unit: string }) {
+    return network.put(`/admins/units/${id}`, payload);
+  },
+  deleteUnit(id: number) {
+    return network.delete(`/admins/units/${id}`);
   },
   getRole(id: number) {
     return network.get(`/admins/roles/${id}`);
