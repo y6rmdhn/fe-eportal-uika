@@ -7,6 +7,7 @@ import {
   Key,
   Fingerprint,
   Code2,
+  Building2,
 } from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
@@ -45,6 +46,12 @@ export const SIDEBAR_ADMIN = [
     label: "Hak Akses",
     href: "/admin/role-permissions",
     icon: <Fingerprint size={20} />,
+  },
+  {
+    key: "units",
+    label: "Unit",
+    href: "/admin/units",
+    icon: <Building2 size={20} />,
   },
   {
     key: "log",

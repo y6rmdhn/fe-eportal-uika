@@ -16,6 +16,7 @@ import Permissions from "./components/pages/Admin/Permissions";
 import RolePermissions from "./components/pages/Admin/RolePermissions";
 import SsoKeys from "./components/pages/Admin/SsoKeys";
 import Register from "./components/pages/Auth/Register";
+import Units from "./components/pages/Admin/Units";
 
 function App() {
   const router = createBrowserRouter(
@@ -86,6 +87,11 @@ function App() {
         path: "/admin/sso-keys",
         loader: adminLoader,
         element: <SsoKeys />,
+      },
+      {
+        path: "/admin/units",
+        loader: adminLoader,
+        element: <Units />,
       },
     ],
     {
