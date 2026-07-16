@@ -17,7 +17,7 @@ export const updateUserSchema = z.object({
   nidn:     z.string().optional(),
   npm:      z.string().optional(),
   unit_id:  z.number().nullable().optional(),
-  roles:    z.array(z.string()).optional(),
+  roles:    z.array(z.string()).min(1, "Minimal pilih 1 jabatan"),
 });
 
 export type updateUserForm = z.infer<typeof updateUserSchema>;

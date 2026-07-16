@@ -34,6 +34,7 @@ import { Spinner } from "@/components/ui/spinner";
 import DialogImportUser from "./Dialog/DialogImportUser";
 import { useQuery } from "@tanstack/react-query";
 import admin from "@/services/api/admin";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import useToggleActive from "@/hooks/UserManagement/useToggleActive";
 
 const UserManagement = () => {
@@ -41,6 +42,8 @@ const UserManagement = () => {
     data: UserData;
     type: "update" | "delete" | "reset-password";
   } | null>(null);
+  
+  const [currentUnitFilter, setCurrentUnitFilter] = useState<string>("");
 
   const handleChanngeAction = (open: boolean) => {
     if (!open) setSelectedAction(null);
@@ -58,6 +61,16 @@ const UserManagement = () => {
   });
   const jabatanOptions = rolesRes || [];
 
+  // Fetch units dari API untuk filter dropdown
+  const { data: unitsRes } = useQuery({
+    queryKey: ["all-units-filter"],
+    queryFn: async () => {
+      const res = await admin.getUnits({ per_page: 1000 });
+      return res.data?.data as { id: number; code: string; nama_unit: string }[];
+    },
+  });
+  const unitOptions = unitsRes || [];
+
   const {
     currentLimit,
     currentPage,
@@ -69,13 +82,14 @@ const UserManagement = () => {
     handleChangeFilter,
   } = useDataTable();
 
-  // LOGIKA TETAP SAMA SEPERTI KODE KAMU
+  // Fetch users with unit filter included
   const { dataUserManagement, isLoadingUserManagement, refetch } =
     useUserManagement({
       currentLimit,
       currentPage,
       currentSearch,
       currentFilter,
+      currentUnitFilter,
     });
 
   const {
@@ -85,6 +99,23 @@ const UserManagement = () => {
     handleFileChange,
     downloadTemplate,
   } = useExportImportUser(currentSearch, currentFilter);
+
+  const roleFilterOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua Jabatan" },
+      ...jabatanOptions.map((jab) => ({ value: jab.name, label: jab.name })),
+    ];
+  }, [jabatanOptions]);
+
+  const unitFilterOptions = useMemo(() => {
+    return [
+      { value: "", label: "Semua Unit" },
+      ...unitOptions.map((unit) => ({
+        value: unit.id.toString(),
+        label: `${unit.nama_unit} (${unit.code})`,
+      })),
+    ];
+  }, [unitOptions]);
 
   const filteredData = useMemo(() => {
     return (dataUserManagement?.data || []).map(
@@ -97,7 +128,7 @@ const UserManagement = () => {
           // Email
           <p
             key={`email-${index}`}
-            className="font-bold text-[14px] text-gray-900"
+            className="font-bold text-[14px] text-gray-900 max-w-[200px] break-all"
           >
             {user.email}
           </p>,
@@ -110,7 +141,19 @@ const UserManagement = () => {
             {user.nidn ?? user.npm ?? user.nik ?? "-"}
           </span>,
 
+          // Unit
+          <div key={`unit-${index}`} className="flex flex-col max-w-[200px]">
+            <span className="font-bold text-gray-800 text-[13px]">{user.unit?.nama_unit || "-"}</span>
+            {user.unit?.code && (
+              <span className="text-[10px] font-bold text-gray-400 font-mono mt-0.5">{user.unit.code}</span>
+            )}
+          </div>,
+
           // Role / Jabatan — tampilkan dari array roles aktual (Spatie)
+          <div
+            key={`role-${index}`}
+            className="flex flex-wrap gap-1 max-w-[220px]"
+          >
           <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
@@ -198,57 +241,30 @@ const UserManagement = () => {
     <AdminLayout desc="Management User">
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto pb-8">
         {/* ── HEADER HALAMAN ── */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              Management User
-            </h1>
-            <p className="text-sm font-medium text-gray-500 mt-1">
-              Kelola data pengguna, hak akses, dan role.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            {/* Input Search Modern */}
-
-            <Select
-              value={currentFilter || "all"}
-              onValueChange={(v) => handleChangeFilter(v === "all" ? "" : v)}
-            >
-              <SelectTrigger className="w-[150px] h-11 rounded-xl border-gray-200 bg-gray-50">
-                <SelectValue placeholder="Filter role" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                <SelectItem value="all">Semua Jabatan</SelectItem>
-                {jabatanOptions.map((jab) => (
-                  <SelectItem key={jab.id} value={jab.name}>
-                    {jab.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name or email..."
-                className="pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl transition-all"
-                onChange={(e) => handleChangeSearch(e.target.value)}
-              />
+        <div className="flex flex-col gap-6 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+          {/* Top Row: Title & Actions */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                Management User
+              </h1>
+              <p className="text-sm font-medium text-gray-500 mt-1">
+                Kelola data pengguna, hak akses, dan role.
+              </p>
             </div>
 
-            <>
-              {/* Hidden file input untuk import */}
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              {/* Import Action */}
               <DialogImportUser
                 isPendingImport={isPendingImport}
                 handleFileChange={handleFileChange}
                 downloadTemplate={downloadTemplate}
               />
 
-              {/* Tombol Export */}
+              {/* Export Action */}
               <Button
                 variant="outline"
-                className="h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold px-4"
+                className="h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold px-4 transition-all"
                 onClick={() => exportUsers()}
                 disabled={isPendingExport}
               >
@@ -261,25 +277,71 @@ const UserManagement = () => {
                   </>
                 )}
               </Button>
-            </>
 
-            {/* Tombol Create Modern */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20 font-bold px-5 transition-all">
-                  <Plus className="h-5 w-5 mr-1.5" strokeWidth={2.5} />
-                  Create
-                </Button>
-              </DialogTrigger>
-              <DialogCreateUser />
-            </Dialog>
+              {/* Create User Button */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20 font-bold px-5 transition-all">
+                    <Plus className="h-5 w-5 mr-1.5" strokeWidth={2.5} />
+                    Create
+                  </Button>
+                </DialogTrigger>
+                <DialogCreateUser />
+              </Dialog>
+            </div>
+          </div>
+
+          {/* Horizontal separator line */}
+          <div className="border-t border-gray-100" />
+
+          {/* Bottom Row: Search & Filters */}
+          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name or email..."
+                className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 rounded-xl transition-all w-full"
+                onChange={(e) => handleChangeSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              {/* Filter Jabatan */}
+              <SearchableSelect
+                options={roleFilterOptions}
+                value={currentFilter}
+                onValueChange={(v) => handleChangeFilter(v)}
+                placeholder="Filter Jabatan"
+                className="w-full sm:w-[200px]"
+              />
+
+              {/* Filter Unit */}
+              <SearchableSelect
+                options={unitFilterOptions}
+                value={currentUnitFilter}
+                onValueChange={(v) => {
+                  setCurrentUnitFilter(v);
+                  handleChangePage(1);
+                }}
+                placeholder="Filter Unit"
+                className="w-full sm:w-[220px]"
+              />
+            </div>
           </div>
         </div>
 
         {/* ── KOMPONEN DATA TABLE ── */}
         <div className="bg-white p-2 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
           <DataTable
-            header={HEADER_TABLE_USER}
+            header={[
+              "No",
+              "Informasi User",
+              "ID (NPM/NIP/NIDN)",
+              "Unit",
+              "Jabatan / Role",
+              "Tanggal Daftar",
+              "Aksi",
+            ]}
             data={filteredData}
             isLoading={isLoadingUserManagement}
             totalPages={dataUserManagement?.meta.last_page || 1}
