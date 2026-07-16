@@ -12,6 +12,11 @@ export interface UserData {
   npm?: string;
   nik?: string;
   unit_id?: number | null;
+  unit?: {
+    id: number;
+    code: string;
+    nama_unit: string;
+  } | null;
   roles?: string[];
   isverified: boolean;
   created_at: string;

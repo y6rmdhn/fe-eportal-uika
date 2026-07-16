@@ -8,7 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { UserCheck, Shield, Search, GripVertical, Check, ArrowRightLeft, Trash2 } from "lucide-react";
+import { UserCheck, Shield, Search, GripVertical, ArrowRightLeft, Trash2 } from "lucide-react";
+// import { Check } from "lucide-react"; // sementara tidak dipakai
 import { Controller } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import admin from "@/services/api/admin";
