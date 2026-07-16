@@ -150,10 +150,6 @@ const UserManagement = () => {
           </div>,
 
           // Role / Jabatan — tampilkan dari array roles aktual (Spatie)
-          <div
-            key={`role-${index}`}
-            className="flex flex-wrap gap-1 max-w-[220px]"
-          >
           <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
