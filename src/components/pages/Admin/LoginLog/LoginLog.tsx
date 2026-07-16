@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// import { Shield, Building2 } from "lucide-react"; // sementara tidak dipakai
 import {
-  Shield,
   Monitor,
   Smartphone,
   Tablet,
@@ -26,7 +26,6 @@ import {
   LogIn,
   User,
   Settings,
-  Building2,
   Clock,
   Search,
   SlidersHorizontal,
