@@ -142,7 +142,7 @@ const UserManagement = () => {
             key={`role-${index}`}
             className="flex flex-wrap gap-1 max-w-[220px]"
           >
-            {Array.isArray(user.roles) && user.roles.length > 0 ? (
+            {Array.isArray(user.roles) && user.roles.length > 0 ?
               user.roles.map((r, i) => (
                 <span
                   key={i}
