@@ -42,7 +42,7 @@ const UserManagement = () => {
     data: UserData;
     type: "update" | "delete" | "reset-password";
   } | null>(null);
-  
+
   const [currentUnitFilter, setCurrentUnitFilter] = useState<string>("");
 
   const handleChanngeAction = (open: boolean) => {
