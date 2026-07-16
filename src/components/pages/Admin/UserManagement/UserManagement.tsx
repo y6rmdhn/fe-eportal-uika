@@ -154,6 +154,7 @@ const UserManagement = () => {
             key={`role-${index}`}
             className="flex flex-wrap gap-1 max-w-[220px]"
           >
+          <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
                 <span
@@ -180,6 +181,24 @@ const UserManagement = () => {
 
           // Aksi
           <div key={`action-${index}`} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 rounded-lg ${
+                user.isverified
+                  ? "text-gray-400 hover:bg-gray-50"
+                  : "text-emerald-600 hover:bg-emerald-50"
+              }`}
+              title={user.isverified ? "Nonaktifkan" : "Verifikasi Akun"}
+              onClick={() => handleToggleActive(user.id)}
+            >
+              {user.isverified ? (
+                <ShieldOff size={16} strokeWidth={2.5} />
+              ) : (
+                <ShieldCheck size={16} strokeWidth={2.5} />
+              )}
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -210,7 +229,13 @@ const UserManagement = () => {
         ];
       },
     );
-  }, [dataUserManagement, currentLimit, currentSearch, currentPage]);
+  }, [
+    dataUserManagement,
+    currentLimit,
+    currentSearch,
+    currentPage,
+    handleToggleActive,
+  ]);
 
   return (
     <AdminLayout desc="Management User">
