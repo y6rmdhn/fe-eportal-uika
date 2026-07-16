@@ -207,12 +207,12 @@ export default function Login() {
             <div className="w-full text-center mt-4 pt-4 border-t border-gray-50 shrink-0">
               <p className="text-gray-600 text-sm">
                 Belum memiliki akun?{" "}
-                <a
-                  href="/register"
+                <Link
+                  to="/register"
                   className="text-emerald-600 font-bold hover:text-emerald-800 transition-colors"
                 >
                   Daftar di sini
-                </a>
+                </Link>
               </p>
             </div>
           </div>

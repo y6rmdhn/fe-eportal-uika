@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     auth.logout().catch(() => {});
 
     // Baru redirect — tidak lewat interceptor
-    window.location.href = "/login";
+    window.location.href = "/eportal/login";
   };
 
   return (

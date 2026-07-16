@@ -34,7 +34,7 @@ export const useLogout = () => {
       );
 
       session.clearSession();
-      window.location.href = "/login";
+      window.location.href = "/eportal/login";
     },
   });
 
