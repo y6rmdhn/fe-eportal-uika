@@ -1,124 +1,129 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import auth from "@/services/api/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { useEffect, useState } from "react"; // ← tambah useState
+import { useForm } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import { z } from "zod";
 
-import network from "@/utils/network.ts";
-import {
-    forgotPasswordSchema,
-    resetPasswordSchema,
-    type forgotPasswordForm,
-    type resetPasswordForm
-} from "@/validations/authValidation.ts";
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+});
 
-export const useResetPassword = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Minimal 8 karakter")
+      .max(32, "Terlalu panjang"),
+    password_confirmation: z.string().min(1, "Konfirmasi password wajib diisi"),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: "Konfirmasi password tidak cocok",
+    path: ["password_confirmation"],
+  });
 
-    // Deteksi mode berdasarkan URL
-    const token = searchParams.get("token");
-    const emailParam = searchParams.get("email");
-    const isResetMode = !!token && !!emailParam;
+type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
+type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
-    // State untuk UI "Cek Email Anda" di Mode 1
-    const [isEmailSent, setIsEmailSent] = useState(false);
+const useResetPassword = () => {
+  const [searchParams] = useSearchParams();
+  const tokenParam = searchParams.get("token");
+  const emailParam = searchParams.get("email");
+  const isResetMode = !!tokenParam && !!emailParam;
 
-    // form link send email
-    const {
-        control: controlRequest,
-        handleSubmit: handleSubmitRequest
-    } = useForm<forgotPasswordForm>({
-        resolver: zodResolver(forgotPasswordSchema)
-    });
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // ← state baru untuk halaman sukses
 
-    // form reset password
-    const {
-        control: controlReset,
-        handleSubmit: handleSubmitReset,
-        watch
-    } = useForm<resetPasswordForm>({
-        resolver: zodResolver(resetPasswordSchema)
-    });
+  const forgotForm = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
 
-    // send link service
-    const sendLinkService = async (payload: forgotPasswordForm) => {
-        const response = await network.post("/password/email", payload);
-        return response.data;
-    };
+  const resetForm = useForm<ResetPasswordForm>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", password_confirmation: "" },
+  });
 
-    const { mutate: mutateSendLink, isPending: isPendingSendLink } = useMutation({
-        mutationFn: sendLinkService,
-        onSuccess: (data) => {
-            if (data.status === 200) {
-                toast.success(data.message || "Link berhasil dikirim!");
-                setIsEmailSent(true);
-            }
-        },
-        onError: (error) => {
-            if (error instanceof AxiosError) {
-                toast.error(error.response?.data?.message || "Email tidak ditemukan atau gagal dikirim.");
-            } else {
-                toast.error("Terjadi kesalahan sistem.");
-            }
-        }
-    });
+  // Auto-fill email dari URL params
+  useEffect(() => {
+    if (emailParam) {
+      forgotForm.setValue("email", decodeURIComponent(emailParam));
+    }
+  }, [emailParam]);
 
-    const onRequestSubmit = (values: forgotPasswordForm) => {
-        mutateSendLink(values);
-    };
+  // Mutation: kirim email reset
+  const { mutate: mutateForgot, isPending: isForgotPending } = useMutation({
+    mutationFn: async (data: ForgotPasswordForm) => {
+      const response = await auth.sendResetLinkEmail(data.email);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.status === 200) {
+        toast.success("Link reset password telah dikirim ke email Anda.");
+        setIsEmailSent(true);
+      } else {
+        toast.error(data.message || "Gagal mengirim email.");
+      }
+    },
+    onError(error) {
+      if (error instanceof AxiosError) {
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
+      } else {
+        toast.error("Terjadi kesalahan");
+      }
+    },
+  });
 
-    // send reset password service
-    const resetPasswordService = async (payload: any) => {
-        const response = await network.post("/password/reset", payload);
-        return response.data;
-    };
+  // Mutation: reset password
+  const { mutate: mutateReset, isPending: isResetPending } = useMutation({
+    mutationFn: async (data: ResetPasswordForm) => {
+      const response = await auth.resetPassword({
+        token: tokenParam!,
+        email: emailParam!,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.status === 200) {
+        toast.success("Password berhasil diubah!");
+        setIsSuccess(true); // ← set sukses, tidak redirect langsung
+      } else {
+        toast.error(data.message || "Gagal reset password.");
+      }
+    },
+    onError(error) {
+      if (error instanceof AxiosError) {
+        toast.error(
+          error.response?.data?.message || "Terjadi kesalahan server",
+        );
+      } else {
+        toast.error("Terjadi kesalahan");
+      }
+    },
+  });
 
-    const { mutate: mutateResetPassword, isPending: isPendingReset } = useMutation({
-        mutationFn: resetPasswordService,
-        onSuccess: (data) => {
-            if (data.status === 200) {
-                toast.success(data.message || "Password berhasil diubah!");
-                navigate("/login");
-            }
-        },
-        onError: (error) => {
-            if (error instanceof AxiosError) {
-                toast.error(error.response?.data?.message || "Gagal mereset password. Token mungkin kedaluwarsa.");
-            } else {
-                toast.error("Terjadi kesalahan sistem.");
-            }
-        }
-    });
+  const onForgotSubmit = (data: ForgotPasswordForm) => mutateForgot(data);
+  const onResetSubmit = (data: ResetPasswordForm) => mutateReset(data);
 
-    const onResetSubmit = (values: resetPasswordForm) => {
-        const payload = {
-            token: token,
-            email: emailParam,
-            password: values.password,
-            password_confirmation: values.password_confirmation,
-        };
-        mutateResetPassword(payload);
-    };
-
-    return {
-        isResetMode,
-        emailParam,
-        isEmailSent,
-
-        // Form & State Mode 1
-        controlRequest,
-        handleSubmitRequest,
-        onRequestSubmit,
-        isPendingSendLink,
-
-        // Form & State Mode 2
-        controlReset,
-        handleSubmitReset,
-        onResetSubmit,
-        isPendingReset,
-        watch
-    };
+  return {
+    isResetMode,
+    emailParam,
+    isEmailSent,
+    isSuccess, // ← export state sukses
+    forgotForm,
+    resetForm,
+    isForgotPending,
+    isResetPending,
+    onForgotSubmit,
+    onResetSubmit,
+  };
 };
+
+export default useResetPassword;

@@ -2,40 +2,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Controller } from "react-hook-form";
 import {
   KeyRound,
   Eye,
   EyeOff,
   UserCircle,
-  Camera,
   ShieldCheck,
   ArrowLeft,
-} from "lucide-react"; // <-- Tambah ArrowLeft
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // <-- Tambah useNavigate
+  CheckCircle2,
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useProfile from "@/hooks/Profile/useProfile";
-import useUpdateProfile from "@/hooks/Profile/useUpdateProfile";
 import useChangePassword from "@/hooks/Profile/useChangePassword";
-import type { Preview } from "@/types/general.type";
-import { getImageData } from "@/lib/utils";
 
 const Profile = () => {
-  const navigate = useNavigate(); // <-- Inisialisasi navigate
+  const navigate = useNavigate();
   const { dataProfile, isLoadingProfile } = useProfile();
-  const {
-    form: profileForm,
-    isPending: isPendingProfile,
-    handleUpdateProfile,
-  } = useUpdateProfile();
   const {
     form: passwordForm,
     isPending: isPendingPassword,
     handleChangePassword,
+    showSuccessModal,
+    confirmAndLogout,
   } = useChangePassword();
 
-  const [preview, setPreview] = useState<Preview | undefined>(undefined);
   const [show, setShow] = useState({
     current: false,
     password: false,
@@ -45,23 +37,9 @@ const Profile = () => {
   const toggle = (field: "current" | "password" | "confirm") =>
     setShow((prev) => ({ ...prev, [field]: !prev[field] }));
 
-  useEffect(() => {
-    if (dataProfile) {
-      profileForm.reset({
-        phone: dataProfile.phone ? String(dataProfile.phone) : "",
-        location: dataProfile.location ?? "",
-        about_me: dataProfile.about_me ?? "",
-        image: undefined,
-      });
-      if (dataProfile.image) {
-        setPreview({ file: undefined, displayUrl: dataProfile.image });
-      }
-    }
-  }, [dataProfile]);
-
   return (
     <div className="w-full max-w-[1100px] mx-auto pb-12 pt-4 sm:pt-6 animate-in fade-in duration-500 font-sans px-4 sm:px-0">
-      {/* ── TOMBOL KEMBALI ── */}
+      {/* Tombol Kembali */}
       <Button
         variant="ghost"
         onClick={() => navigate("/")}
@@ -73,7 +51,7 @@ const Profile = () => {
         </span>
       </Button>
 
-      {/* ── HEADER HALAMAN ── */}
+      {/* Header */}
       <div className="flex items-center gap-5 bg-white p-6 sm:px-8 sm:py-7 rounded-[2rem] border border-gray-100 shadow-sm mb-8">
         <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-100">
           <UserCircle className="h-8 w-8 text-emerald-600" />
@@ -89,16 +67,9 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ── KONTEN DUA KOLOM ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* =========================================
-            KOLOM KIRI: FORM UPDATE PROFILE 
-            ========================================= */}
-        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-[2rem] border border-gray-100 shadow-sm">
-          <h2 className="text-xl font-extrabold text-gray-900 mb-6 tracking-tight">
-            Informasi Profil
-          </h2>
-
+        {/* Kolom Kiri — Info Profile (Read Only) */}
+        <div className="lg:col-span-7 bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
           {isLoadingProfile ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <Spinner className="text-emerald-600 w-8 h-8" />
@@ -107,19 +78,16 @@ const Profile = () => {
               </span>
             </div>
           ) : (
-            <form
-              onSubmit={profileForm.handleSubmit(handleUpdateProfile)}
-              className="space-y-7"
-            >
-              {/* ── INFO AKADEMIK ── */}
-              <div className="p-6 bg-[#f8faf9] rounded-2xl border border-emerald-100/50">
-                <div className="flex items-center gap-2 mb-5">
-                  <ShieldCheck size={18} className="text-emerald-600" />
+            <div className="p-6 sm:p-8">
+              {/* Info Identitas */}
+              <div className="p-5 bg-[#f8faf9] rounded-2xl border border-emerald-100/50 mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck size={16} className="text-emerald-600" />
                   <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                     Data Akademik & Sistem
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-y-6 gap-x-4 text-sm">
+                <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
                   <div>
                     <p className="text-gray-400 text-xs font-semibold mb-1">
                       Nama Lengkap
@@ -130,7 +98,7 @@ const Profile = () => {
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold mb-1">
-                      Alamat Email
+                      Email
                     </p>
                     <p className="font-extrabold text-gray-900 truncate">
                       {dataProfile?.email ?? "-"}
@@ -138,167 +106,43 @@ const Profile = () => {
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold mb-1">
-                      Role Akses
+                      Role
                     </p>
-                    <p className="font-bold text-emerald-700 capitalize inline-flex px-2.5 py-0.5 bg-emerald-100 rounded-md text-xs mt-0.5">
+                    <span className="font-bold text-emerald-700 capitalize inline-flex px-2.5 py-0.5 bg-emerald-100 rounded-md text-xs">
                       {dataProfile?.role ?? "-"}
-                    </p>
+                    </span>
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold mb-1">
                       NIM/NIP/NIDN
                     </p>
                     <p className="font-mono font-bold text-gray-900">
-                      {dataProfile?.npm ||
-                        dataProfile?.nip ||
-                        dataProfile?.nidn ||
-                        "-"}
+                      {dataProfile?.npm || dataProfile?.nidn || "-"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* ── FOTO PROFIL UPLOAD ── */}
-              <div className="space-y-3">
+              {/* Notice ala SEVIMA: Email Pribadi */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-100">
                 <Label className="text-sm font-bold text-gray-700">
-                  Foto Profil
+                  Email Pribadi
                 </Label>
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-20 w-20 rounded-full border-2 border-emerald-50 shadow-sm">
-                    <AvatarImage
-                      src={preview?.displayUrl}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-emerald-50 text-emerald-600 font-extrabold text-2xl">
-                      {dataProfile?.name?.charAt(0).toUpperCase() ?? "?"}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <Controller
-                    name="image"
-                    control={profileForm.control}
-                    render={({ field, fieldState }) => (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-all shadow-sm text-sm font-bold text-gray-700">
-                          <Camera size={16} />
-                          Ubah Foto
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/jpeg,image/jpg,image/png,image/webp"
-                            onChange={(event) => {
-                              const { file, displayUrl } = getImageData(event);
-                              if (file) {
-                                field.onChange(file);
-                                setPreview({ file, displayUrl });
-                              }
-                            }}
-                          />
-                        </label>
-                        <span className="text-[11px] text-gray-400 font-medium ml-1">
-                          Format: JPG, PNG. Maks 2MB.
-                        </span>
-                        {fieldState.error && (
-                          <p className="text-xs text-rose-500 font-medium ml-1">
-                            {fieldState.error.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
-                </div>
+                <Input
+                  disabled
+                  value={dataProfile?.email ?? ""}
+                  className="h-11 mt-1.5 rounded-xl bg-gray-100 border-gray-200 px-4 text-gray-500"
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  Jika ingin mengubah alamat email, silakan menghubungi admin
+                  Perguruan Tinggi.
+                </p>
               </div>
-
-              {/* ── INPUT NO HP ── */}
-              <Controller
-                name="phone"
-                control={profileForm.control}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold text-gray-700">
-                      Nomor Handphone
-                    </Label>
-                    <Input
-                      {...field}
-                      placeholder="Contoh: 08123456789"
-                      className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 px-4"
-                    />
-                    {fieldState.error && (
-                      <p className="text-xs text-rose-500 font-medium">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* ── INPUT LOKASI ── */}
-              <Controller
-                name="location"
-                control={profileForm.control}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold text-gray-700">
-                      Lokasi / Alamat
-                    </Label>
-                    <Input
-                      {...field}
-                      placeholder="Kota atau alamat domisili"
-                      className="h-12 rounded-xl bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 px-4"
-                    />
-                    {fieldState.error && (
-                      <p className="text-xs text-rose-500 font-medium">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* ── INPUT ABOUT ME ── */}
-              <Controller
-                name="about_me"
-                control={profileForm.control}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-bold text-gray-700">
-                      Tentang Saya (Bio)
-                    </Label>
-                    <textarea
-                      {...field}
-                      placeholder="Ceritakan sedikit tentang dirimu..."
-                      className="w-full min-h-[100px] px-4 py-3 text-sm bg-gray-50/50 border border-gray-200 rounded-xl resize-none focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
-                    />
-                    {fieldState.error && (
-                      <p className="text-xs text-rose-500 font-medium">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-
-              {/* TOMBOL SIMPAN PROFIL */}
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  disabled={isPendingProfile}
-                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-600/10 transition-all text-[15px]"
-                >
-                  {isPendingProfile ? (
-                    <Spinner className="w-5 h-5 text-white" />
-                  ) : (
-                    "Simpan Perubahan Profil"
-                  )}
-                </Button>
-              </div>
-            </form>
+            </div>
           )}
         </div>
 
-        {/* =========================================
-            KOLOM KANAN: FORM UBAH PASSWORD
-            ========================================= */}
+        {/* Kolom Kanan — Ganti Password */}
         <div className="lg:col-span-5 bg-white p-6 sm:p-8 rounded-[2rem] border border-gray-100 shadow-sm sticky top-24">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-100">
@@ -391,6 +235,30 @@ const Profile = () => {
           </form>
         </div>
       </div>
+
+      {/* Modal Sukses Ganti Password */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-[2rem] max-w-sm w-full p-8 text-center shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto mb-5 w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
+              <CheckCircle2 className="w-9 h-9 text-emerald-600" />
+            </div>
+            <h3 className="text-lg font-extrabold text-gray-900 mb-2">
+              Password Berhasil Diubah
+            </h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              Demi keamanan akun Anda, silakan login kembali menggunakan
+              password baru.
+            </p>
+            <Button
+              onClick={confirmAndLogout}
+              className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold"
+            >
+              Login Ulang
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

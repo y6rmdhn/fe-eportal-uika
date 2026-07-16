@@ -1,7 +1,5 @@
 import network from "@/utils/network.ts";
-import type {
-  loginForm,
-} from "@/validations/authValidation.ts";
+import type { loginForm } from "@/validations/authValidation.ts";
 
 const auth = {
   getUser() {
@@ -13,6 +11,9 @@ const auth = {
   login(payload: loginForm) {
     return network.post("/auth/login", payload);
   },
+  checkIdExists(field: string, value: string) {
+    return network.get("/check-id", { params: { field, value } });
+  },
   register(payload: {
     email: string;
     password: string;
@@ -21,9 +22,20 @@ const auth = {
     nidn?: string;
     npm?: string;
     nip?: string;
-}) {
+    nama?: string;
+    unit_id?: number;
+    jabatan_id?: number;
+    nama_lengkap?: string;
+    nik?: string;
+    instansi?: string;
+    jenkel?: string;
+    tanggal_lahir?: string;
+    tempat_lahir?: string;
+    agama?: string;
+    no_hp?: string;
+  }) {
     return network.post("/register", payload);
-},
+  },
   logout() {
     return network.post("/logout");
   },
@@ -52,6 +64,12 @@ const auth = {
   },
   validateNpm(npm: string) {
     return network.get("/validate/npm", { params: { npm } });
+  },
+  getPublicUnits() {
+    return network.get("/public/units");
+  },
+  getPublicJabatans() {
+    return network.get("/public/jabatans");
   },
 };
 

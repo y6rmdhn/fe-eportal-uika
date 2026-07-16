@@ -7,7 +7,16 @@ import { HEADER_TABLE_USER } from "@/constants/AdminConstant";
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
 import { useMemo, useState } from "react";
-import { Search, Plus, Edit2, Trash2, KeyRound, Download } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  KeyRound,
+  Download,
+  ShieldCheck,
+  ShieldOff,
+} from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
@@ -26,6 +35,7 @@ import DialogImportUser from "./Dialog/DialogImportUser";
 import { useQuery } from "@tanstack/react-query";
 import admin from "@/services/api/admin";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import useToggleActive from "@/hooks/UserManagement/useToggleActive";
 
 const UserManagement = () => {
   const [selectedAction, setSelectedAction] = useState<{
@@ -38,6 +48,8 @@ const UserManagement = () => {
   const handleChanngeAction = (open: boolean) => {
     if (!open) setSelectedAction(null);
   };
+
+  const { handleToggleActive } = useToggleActive();
 
   // Fetch jabatan/roles dari API untuk filter dropdown
   const { data: rolesRes } = useQuery({
@@ -126,7 +138,7 @@ const UserManagement = () => {
             key={`id-${index}`}
             className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
           >
-            {user.nidn || user.npm || "-"}
+            {user.nidn ?? user.npm ?? user.nik ?? "-"}
           </span>,
 
           // Unit
@@ -142,6 +154,7 @@ const UserManagement = () => {
             key={`role-${index}`}
             className="flex flex-wrap gap-1 max-w-[220px]"
           >
+          <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
                 <span
@@ -168,6 +181,24 @@ const UserManagement = () => {
 
           // Aksi
           <div key={`action-${index}`} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 rounded-lg ${
+                user.isverified
+                  ? "text-gray-400 hover:bg-gray-50"
+                  : "text-emerald-600 hover:bg-emerald-50"
+              }`}
+              title={user.isverified ? "Nonaktifkan" : "Verifikasi Akun"}
+              onClick={() => handleToggleActive(user.id)}
+            >
+              {user.isverified ? (
+                <ShieldOff size={16} strokeWidth={2.5} />
+              ) : (
+                <ShieldCheck size={16} strokeWidth={2.5} />
+              )}
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -198,7 +229,13 @@ const UserManagement = () => {
         ];
       },
     );
-  }, [dataUserManagement, currentLimit, currentSearch, currentPage]);
+  }, [
+    dataUserManagement,
+    currentLimit,
+    currentSearch,
+    currentPage,
+    handleToggleActive,
+  ]);
 
   return (
     <AdminLayout desc="Management User">

@@ -70,7 +70,7 @@ export const SIDEBAR_ADMIN = [
 export const HEADER_TABLE_USER = [
   "No",
   "Informasi User", // Gabungan Foto, Nama, dan Email
-  "ID (NPM/NIP/NIDN)", // Menyesuaikan role-nya
+  "ID (NPM/NIDN/NIK)", // Menyesuaikan role-nya
   "Jabatan / Role",
   // "Status",
   "Tangal Daftar",

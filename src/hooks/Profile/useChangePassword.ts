@@ -2,9 +2,11 @@ import user from "@/services/api/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { useLogout } from "@/hooks/Auth/useLogout";
 
 export const changePasswordSchema = z
   .object({
@@ -23,6 +25,9 @@ export const changePasswordSchema = z
 export type changePasswordForm = z.infer<typeof changePasswordSchema>;
 
 const useChangePassword = () => {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { handleLogout } = useLogout();
+
   const form = useForm<changePasswordForm>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
@@ -40,6 +45,7 @@ const useChangePassword = () => {
     onSuccess: () => {
       toast.success("Password berhasil diubah");
       form.reset();
+      setShowSuccessModal(true);
     },
     onError(error) {
       if (error instanceof AxiosError) {
@@ -54,7 +60,19 @@ const useChangePassword = () => {
 
   const handleChangePassword = (payload: changePasswordForm) => mutate(payload);
 
-  return { form, isPending, handleChangePassword };
+  // Dipanggil setelah user klik "Lanjutkan" di modal, atau otomatis via timer
+  const confirmAndLogout = () => {
+    setShowSuccessModal(false);
+    handleLogout();
+  };
+
+  return {
+    form,
+    isPending,
+    handleChangePassword,
+    showSuccessModal,
+    confirmAndLogout,
+  };
 };
 
 export default useChangePassword;
