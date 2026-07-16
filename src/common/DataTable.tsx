@@ -51,7 +51,7 @@ const DataTable = ({
               {header.map((column) => (
                 <TableHead
                   key={`th-${column}`}
-                  className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-normal"
                 >
                   {column}
                 </TableHead>
@@ -81,7 +81,7 @@ const DataTable = ({
                   {row.map((column, columnIndex) => (
                     <TableCell
                       key={`tc-${rowIndex}-${columnIndex}`}
-                      className="px-6 py-3.5 align-middle"
+                      className="px-6 py-3.5 align-middle whitespace-normal break-words"
                     >
                       {column}
                     </TableCell>

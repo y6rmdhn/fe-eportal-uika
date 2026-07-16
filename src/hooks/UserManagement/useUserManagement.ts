@@ -6,6 +6,7 @@ interface PropsType {
   currentLimit: number;
   currentPage: number;
   currentFilter?: string; // filter by role
+  currentUnitFilter?: string | number; // filter by unit
 }
 
 const useUserManagement = ({
@@ -13,6 +14,7 @@ const useUserManagement = ({
   currentPage,
   currentSearch,
   currentFilter,
+  currentUnitFilter,
 }: PropsType) => {
   const getUserManagement = async () => {
     const response = await admin.getAllUserManagement({
@@ -20,6 +22,7 @@ const useUserManagement = ({
       currentPage,
       currentSearch,
       currentFilter,
+      currentUnitFilter,
     });
     return response.data;
   };
@@ -35,6 +38,7 @@ const useUserManagement = ({
       currentLimit,
       currentSearch,
       currentFilter,
+      currentUnitFilter,
     ],
     queryFn: getUserManagement,
   });

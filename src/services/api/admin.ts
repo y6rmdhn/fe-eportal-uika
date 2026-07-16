@@ -6,6 +6,7 @@ const admin = {
     currentPage?: number;
     currentSearch?: string;
     currentFilter?: string;
+    currentUnitFilter?: string | number;
   }) {
     return network.get("/admins", {
       params: {
@@ -13,6 +14,7 @@ const admin = {
         per_page: params.currentLimit,
         page: params.currentPage,
         role: params.currentFilter || undefined,
+        unit_id: params.currentUnitFilter || undefined,
       },
     });
   },

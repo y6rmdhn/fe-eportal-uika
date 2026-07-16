@@ -48,12 +48,12 @@ function SearchableRoleSelect({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const selectedRole = roles.find((r) => r.id.toString() === value);
+  const selectedRole = roles.find((r) => r && r.id.toString() === value);
 
   const filtered = useMemo(
     () =>
       roles.filter((r) =>
-        r.name.toLowerCase().includes(search.toLowerCase())
+        r && (r.name || "").toLowerCase().includes(search.toLowerCase())
       ),
     [roles, search]
   );
@@ -99,7 +99,7 @@ function SearchableRoleSelect({
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat role...
             </span>
           ) : selectedRole ? (
-            selectedRole.name
+            selectedRole.name || "Unnamed Role"
           ) : (
             "Pilih role..."
           )}
@@ -169,7 +169,7 @@ function SearchableRoleSelect({
                         : "text-gray-700 hover:bg-gray-50 font-medium"
                     }`}
                   >
-                    <span className="capitalize">{role.name}</span>
+                    <span className="capitalize">{role.name || "Unnamed Role"}</span>
                     {isSelected && (
                       <span className="text-emerald-600 text-xs font-bold">
                         ✓
