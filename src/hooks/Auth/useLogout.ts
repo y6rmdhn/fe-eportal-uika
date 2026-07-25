@@ -13,26 +13,13 @@ export const useLogout = () => {
     mutationFn: logoutService,
     onSuccess: (data) => {
       const message = data?.message || "Berhasil logout!";
-
       toast.success(message);
     },
     onError: (error) => {
       console.error("Gagal logout di server:", error);
       toast.error("Sesi telah berakhir.");
     },
-    onSettled: async () => {
-      // Single Logout — hit logout endpoint semua aplikasi terdaftar
-      const registeredApps = [
-        "http://localhost:3000/api/logout", // TIAS/UCL
-        // tambahin aplikasi lain di sini nanti
-      ];
-
-      await Promise.allSettled(
-        registeredApps.map((url) =>
-          fetch(url, { method: "POST", credentials: "include" }),
-        ),
-      );
-
+    onSettled: () => {
       session.clearSession();
       window.location.href = "/eportal/login";
     },

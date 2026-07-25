@@ -25,8 +25,8 @@ const BASE_URL = import.meta.env.BASE_URL;
 
 // Tinggal gabungin string-nya! (BASE_URL udah ada garis miring akhirnya)
 const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
-const GOOGLE_LOGO = "https://tias.ti.ft.uika-bogor.ac.id/img/google.png";
-const API_URL = import.meta.env.VITE_PUBLIC_API_URL;
+// const GOOGLE_LOGO = "https://tias.ti.ft.uika-bogor.ac.id/img/google.png";
+// const API_URL = import.meta.env.VITE_PUBLIC_API_URL;
 
 // DATA SLIDER
 const slides = [
@@ -183,7 +183,7 @@ export default function Login() {
                 </Button>
               </form>
 
-              <div className="mt-6 flex items-center before:flex-1 before:border-t before:border-gray-100 after:flex-1 after:border-t after:border-gray-100">
+              {/* <div className="mt-6 flex items-center before:flex-1 before:border-t before:border-gray-100 after:flex-1 after:border-t after:border-gray-100">
                 <p className="mx-4 text-center text-xs text-gray-400 font-bold tracking-widest">
                   ATAU
                 </p>
@@ -201,7 +201,7 @@ export default function Login() {
                   />
                   Lanjutkan dengan Google
                 </a>
-              </div>
+              </div> */}
             </div>
 
             <div className="w-full text-center mt-4 pt-4 border-t border-gray-50 shrink-0">
