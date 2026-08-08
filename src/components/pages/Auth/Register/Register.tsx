@@ -336,6 +336,7 @@ export default function Register() {
         unit_nama: unitNama,
         // BARU: kirim asal universitas khusus Mahasiswa PMM
         asal_univ: selectedRole?.key === "Mahasiswa_PMM" ? asalUniv : undefined,
+        is_pmm: selectedRole?.key === "Mahasiswa_PMM" ? true : undefined,
       };
 
       if (selectedRole?.formType === "dosenExt") {
