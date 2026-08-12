@@ -38,12 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import DataTable from "@/common/DataTable";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const DEVICE_ICON: Record<string, React.ReactNode> = {
@@ -55,7 +50,13 @@ const DEVICE_ICON: Record<string, React.ReactNode> = {
 // Category config for Activity Logs
 const ACTIVITY_CATEGORY_CONFIG: Record<
   string,
-  { label: string; icon: React.ReactNode; bgColor: string; textColor: string; borderColor: string }
+  {
+    label: string;
+    icon: React.ReactNode;
+    bgColor: string;
+    textColor: string;
+    borderColor: string;
+  }
 > = {
   auth: {
     label: "Autentikasi",
@@ -98,14 +99,26 @@ const TYPE_COLOR_MAP: Record<
   string,
   { bg: string; text: string; border: string }
 > = {
-  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
-  gray:    { bg: "bg-gray-50",    text: "text-gray-600",    border: "border-gray-100"    },
-  blue:    { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-100"    },
-  amber:   { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-100"   },
-  rose:    { bg: "bg-rose-50",    text: "text-rose-700",    border: "border-rose-100"    },
-  purple:  { bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-100"  },
-  teal:    { bg: "bg-teal-50",    text: "text-teal-700",    border: "border-teal-100"    },
-  sky:     { bg: "bg-sky-50",     text: "text-sky-700",     border: "border-sky-100"     },
+  emerald: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-100",
+  },
+  gray: { bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-100" },
+  blue: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-100" },
+  amber: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-100",
+  },
+  rose: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-100" },
+  purple: {
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-100",
+  },
+  teal: { bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-100" },
+  sky: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-100" },
 };
 
 // ── Main Component ──────────────────────────────────────────────────────────
@@ -132,7 +145,13 @@ const LoginLog = () => {
 
   // ── Login Log Queries ──
   const { data: groupedData, isLoading: isLoadingLogin } = useQuery({
-    queryKey: ["login-log-grouped", currentPage, currentLimit, currentFilter, currentDevice],
+    queryKey: [
+      "login-log-grouped",
+      currentPage,
+      currentLimit,
+      currentFilter,
+      currentDevice,
+    ],
     queryFn: async () => {
       const res = await admin.getGroupedLoginLogs({
         page: currentPage,
@@ -153,7 +172,12 @@ const LoginLog = () => {
   });
 
   const { data: detailData, isLoading: isLoadingDetail } = useQuery({
-    queryKey: ["activity-log-detail", selectedGroup?.user_id, detailPage, detailLimit],
+    queryKey: [
+      "activity-log-detail",
+      selectedGroup?.user_id,
+      detailPage,
+      detailLimit,
+    ],
     queryFn: async () => {
       const res = await admin.getActivityLogs(selectedGroup?.user_id, {
         per_page: detailLimit,
@@ -166,13 +190,19 @@ const LoginLog = () => {
 
   // ── Global Activity Log Query ──
   const { data: activityData, isLoading: isLoadingActivity } = useQuery({
-    queryKey: ["global-activity-logs", activityPage, activityPerPage, activityTypeFilter, activitySearch],
+    queryKey: [
+      "global-activity-logs",
+      activityPage,
+      activityPerPage,
+      activityTypeFilter,
+      activitySearch,
+    ],
     queryFn: async () => {
       const res = await admin.getAllActivityLogs({
         page: activityPage,
         per_page: activityPerPage,
         type: activityTypeFilter || undefined,
-        exclude_types: "login,logout",
+        exclude_types: "login,logout,app_access",
         search: activitySearch || undefined,
       });
       return res.data;
@@ -197,7 +227,6 @@ const LoginLog = () => {
   return (
     <AdminLayout title="Aktivitas Log | E-Portal UIKA" desc="Aktivitas Log">
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto pb-8">
-
         {/* ── HEADER ── */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
@@ -209,7 +238,8 @@ const LoginLog = () => {
                 Aktivitas Log
               </h1>
               <p className="text-sm font-medium text-gray-500 mt-0.5">
-                Monitor semua aktivitas sistem — login, logout, dan manipulasi data
+                Monitor semua aktivitas sistem — login, logout, dan manipulasi
+                data
               </p>
             </div>
           </div>
@@ -312,7 +342,6 @@ const LoginLog = () => {
           {/* ══════════════════════════════════════════════════════════════ */}
           <TabsContent value="activity" className="mt-0">
             <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden">
-
               {/* Filter Bar */}
               <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
@@ -348,23 +377,34 @@ const LoginLog = () => {
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     <SelectItem value="all">Semua tipe</SelectItem>
-                    <SelectItem value="update_profile">Update Profil</SelectItem>
-                    <SelectItem value="change_password">Ganti Password</SelectItem>
-                    <SelectItem value="reset_password">Reset Password</SelectItem>
+                    <SelectItem value="update_profile">
+                      Update Profil
+                    </SelectItem>
+                    <SelectItem value="change_password">
+                      Ganti Password
+                    </SelectItem>
+                    <SelectItem value="reset_password">
+                      Reset Password
+                    </SelectItem>
                     <SelectItem value="unit_create">Buat Unit</SelectItem>
                     <SelectItem value="unit_update">Update Unit</SelectItem>
                     <SelectItem value="unit_delete">Hapus Unit</SelectItem>
                     <SelectItem value="unit_assign">Tugaskan Unit</SelectItem>
                     <SelectItem value="unit_unassign">Cabut Unit</SelectItem>
-                    <SelectItem value="permission_assign">Tugaskan Hak Akses</SelectItem>
-                    <SelectItem value="permission_unassign">Cabut Hak Akses</SelectItem>
-                    <SelectItem value="permission_sync">Sinkron Hak Akses</SelectItem>
+                    <SelectItem value="permission_assign">
+                      Tugaskan Hak Akses
+                    </SelectItem>
+                    <SelectItem value="permission_unassign">
+                      Cabut Hak Akses
+                    </SelectItem>
+                    <SelectItem value="permission_sync">
+                      Sinkron Hak Akses
+                    </SelectItem>
                     <SelectItem value="role_create">Buat Role</SelectItem>
                     <SelectItem value="role_update">Update Role</SelectItem>
                     <SelectItem value="role_delete">Hapus Role</SelectItem>
                     <SelectItem value="role_assign">Tugaskan Role</SelectItem>
                     <SelectItem value="role_unassign">Cabut Role</SelectItem>
-                    <SelectItem value="app_access">Akses Aplikasi</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -619,16 +659,24 @@ const LoginLog = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50/50">
-                      {["No", "Tanggal", "User", "Total", "Berhasil", "Gagal", "IP Address", "Device Info", "Aksi"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className="text-left px-6 py-4 font-bold text-gray-500 text-xs uppercase tracking-wider"
-                          >
-                            {h}
-                          </th>
-                        ),
-                      )}
+                      {[
+                        "No",
+                        "Tanggal",
+                        "User",
+                        "Total",
+                        "Berhasil",
+                        "Gagal",
+                        "IP Address",
+                        "Device Info",
+                        "Aksi",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="text-left px-6 py-4 font-bold text-gray-500 text-xs uppercase tracking-wider"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -678,7 +726,9 @@ const LoginLog = () => {
                                 className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 rounded-md w-fit ${
                                   log.role?.toLowerCase().includes("admin")
                                     ? "bg-rose-50 text-rose-700"
-                                    : log.role?.toLowerCase().includes("mahasiswa")
+                                    : log.role
+                                          ?.toLowerCase()
+                                          .includes("mahasiswa")
                                       ? "bg-emerald-50 text-emerald-700"
                                       : "bg-blue-50 text-blue-700"
                                 }`}
@@ -709,10 +759,14 @@ const LoginLog = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                              {DEVICE_ICON[log.device_type] ?? <Monitor size={13} />}
+                              {DEVICE_ICON[log.device_type] ?? (
+                                <Monitor size={13} />
+                              )}
                               <span>
                                 {log.browser} • {log.platform} •{" "}
-                                <span className="capitalize">{log.device_type}</span>
+                                <span className="capitalize">
+                                  {log.device_type}
+                                </span>
                               </span>
                             </div>
                           </td>
@@ -821,7 +875,9 @@ const LoginLog = () => {
                   >
                     {log.type_label}
                   </span>,
-                  <span className="text-sm text-gray-700">{log.description}</span>,
+                  <span className="text-sm text-gray-700">
+                    {log.description}
+                  </span>,
                 ];
               })}
             />
