@@ -1,20 +1,29 @@
 import network from "@/utils/network.ts";
 
 const admin = {
-  getAllUserManagement(params: {
-    currentLimit?: number;
-    currentPage?: number;
-    currentSearch?: string;
+  getAllUserManagement({
+    currentLimit,
+    currentPage,
+    currentSearch,
+    currentFilter,
+    currentUnitFilter,
+    currentVerifiedFilter,
+  }: {
+    currentLimit: number;
+    currentPage: number;
+    currentSearch: string;
     currentFilter?: string;
-    currentUnitFilter?: string | number;
+    currentUnitFilter?: string;
+    currentVerifiedFilter?: string;
   }) {
     return network.get("/admins", {
       params: {
-        search: params.currentSearch,
-        per_page: params.currentLimit,
-        page: params.currentPage,
-        role: params.currentFilter || undefined,
-        unit_id: params.currentUnitFilter || undefined,
+        per_page: currentLimit,
+        page: currentPage,
+        search: currentSearch,
+        role: currentFilter,
+        unit_id: currentUnitFilter,
+        isverified: currentVerifiedFilter,
       },
     });
   },

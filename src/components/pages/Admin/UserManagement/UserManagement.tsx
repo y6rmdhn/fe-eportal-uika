@@ -3,7 +3,6 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-// import { HEADER_TABLE_USER } from "@/constants/AdminConstant"; // sementara tidak dipakai
 import useDataTable from "@/hooks/Table/useDataTable";
 import useUserManagement from "@/hooks/UserManagement/useUserManagement";
 import { useMemo, useState } from "react";
@@ -21,8 +20,8 @@ import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
 import type { UserData } from "@/types/general.type";
 import DialogDeleteUser from "./Dialog/DialogDeleteUser";
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // sementara tidak dipakai
 import DialogResetPassword from "./Dialog/DialogResetPassword";
+import DialogVerifyUser from "./Dialog/DialogVerifyUser";
 import useExportImportUser from "@/hooks/UserManagement/useExportImportUser";
 import { Spinner } from "@/components/ui/spinner";
 import DialogImportUser from "./Dialog/DialogImportUser";
@@ -38,6 +37,8 @@ const UserManagement = () => {
   } | null>(null);
 
   const [currentUnitFilter, setCurrentUnitFilter] = useState<string>("");
+  const [currentVerifiedFilter, setCurrentVerifiedFilter] = useState<string>("");
+  const [verifyAction, setVerifyAction] = useState<UserData | null>(null);
 
   const handleChanngeAction = (open: boolean) => {
     if (!open) setSelectedAction(null);
@@ -45,7 +46,6 @@ const UserManagement = () => {
 
   const { handleToggleActive } = useToggleActive();
 
-  // Fetch jabatan/roles dari API untuk filter dropdown
   const { data: rolesRes } = useQuery({
     queryKey: ["all-roles"],
     queryFn: async () => {
@@ -55,7 +55,6 @@ const UserManagement = () => {
   });
   const jabatanOptions = rolesRes || [];
 
-  // Fetch units dari API untuk filter dropdown
   const { data: unitsRes } = useQuery({
     queryKey: ["all-units-filter"],
     queryFn: async () => {
@@ -76,7 +75,6 @@ const UserManagement = () => {
     handleChangeFilter,
   } = useDataTable();
 
-  // Fetch users with unit filter included
   const { dataUserManagement, isLoadingUserManagement, refetch } =
     useUserManagement({
       currentLimit,
@@ -84,6 +82,7 @@ const UserManagement = () => {
       currentSearch,
       currentFilter,
       currentUnitFilter,
+      currentVerifiedFilter,
     });
 
   const {
@@ -119,15 +118,19 @@ const UserManagement = () => {
             {currentLimit * (currentPage - 1) + index + 1}
           </span>,
 
-          // Email
-          <p
-            key={`email-${index}`}
-            className="font-bold text-[14px] text-gray-900 max-w-[200px] break-all"
-          >
-            {user.email}
-          </p>,
+          // Email + badge belum verifikasi
+          <div key={`email-${index}`} className="flex flex-col gap-1">
+            <p className="font-bold text-[14px] text-gray-900 max-w-[200px] break-all">
+              {user.email}
+            </p>
+            {!user.isverified && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-orange-600 border border-orange-100 w-fit whitespace-nowrap">
+                Belum Verifikasi
+              </span>
+            )}
+          </div>,
 
-          // NIDN / NPM
+          // NIDN / NPM / NIK
           <span
             key={`id-${index}`}
             className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
@@ -137,13 +140,17 @@ const UserManagement = () => {
 
           // Unit
           <div key={`unit-${index}`} className="flex flex-col max-w-[200px]">
-            <span className="font-bold text-gray-800 text-[13px]">{user.unit?.nama_unit || "-"}</span>
+            <span className="font-bold text-gray-800 text-[13px]">
+              {user.unit?.nama_unit || "-"}
+            </span>
             {user.unit?.code && (
-              <span className="text-[10px] font-bold text-gray-400 font-mono mt-0.5">{user.unit.code}</span>
+              <span className="text-[10px] font-bold text-gray-400 font-mono mt-0.5">
+                {user.unit.code}
+              </span>
             )}
           </div>,
 
-          // Role / Jabatan — tampilkan dari array roles aktual (Spatie)
+          // Role / Jabatan
           <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
@@ -162,10 +169,7 @@ const UserManagement = () => {
           </div>,
 
           // Tanggal
-          <span
-            key={`date-${index}`}
-            className="text-sm text-gray-600 font-medium"
-          >
+          <span key={`date-${index}`} className="text-sm text-gray-600 font-medium">
             {user.created_at?.split("T")[0]}
           </span>,
 
@@ -180,7 +184,13 @@ const UserManagement = () => {
                   : "text-emerald-600 hover:bg-emerald-50"
               }`}
               title={user.isverified ? "Nonaktifkan" : "Verifikasi Akun"}
-              onClick={() => handleToggleActive(user.id)}
+              onClick={() => {
+                if (!user.isverified) {
+                  setVerifyAction(user); // ← buka popup verifikasi
+                } else {
+                  handleToggleActive(user.id); // ← langsung toggle kalau sudah aktif
+                }
+              }}
             >
               {user.isverified ? (
                 <ShieldOff size={16} strokeWidth={2.5} />
@@ -188,7 +198,6 @@ const UserManagement = () => {
                 <ShieldCheck size={16} strokeWidth={2.5} />
               )}
             </Button>
-
             <Button
               variant="ghost"
               size="icon"
@@ -201,9 +210,7 @@ const UserManagement = () => {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-amber-600 hover:bg-amber-50 rounded-lg"
-              onClick={() =>
-                setSelectedAction({ data: user, type: "reset-password" })
-              }
+              onClick={() => setSelectedAction({ data: user, type: "reset-password" })}
             >
               <KeyRound size={16} strokeWidth={2.5} />
             </Button>
@@ -232,7 +239,6 @@ const UserManagement = () => {
       <div className="flex flex-col gap-6 w-full max-w-[1400px] mx-auto pb-8">
         {/* ── HEADER HALAMAN ── */}
         <div className="flex flex-col gap-6 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-          {/* Top Row: Title & Actions */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
@@ -242,16 +248,12 @@ const UserManagement = () => {
                 Kelola data pengguna, hak akses, dan role.
               </p>
             </div>
-
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              {/* Import Action */}
               <DialogImportUser
                 isPendingImport={isPendingImport}
                 handleFileChange={handleFileChange}
                 downloadTemplate={downloadTemplate}
               />
-
-              {/* Export Action */}
               <Button
                 variant="outline"
                 className="h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold px-4 transition-all"
@@ -267,8 +269,6 @@ const UserManagement = () => {
                   </>
                 )}
               </Button>
-
-              {/* Create User Button */}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm shadow-emerald-600/20 font-bold px-5 transition-all">
@@ -281,10 +281,9 @@ const UserManagement = () => {
             </div>
           </div>
 
-          {/* Horizontal separator line */}
           <div className="border-t border-gray-100" />
 
-          {/* Bottom Row: Search & Filters */}
+          {/* Search & Filters */}
           <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -294,9 +293,7 @@ const UserManagement = () => {
                 onChange={(e) => handleChangeSearch(e.target.value)}
               />
             </div>
-
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-              {/* Filter Jabatan */}
               <SearchableSelect
                 options={roleFilterOptions}
                 value={currentFilter}
@@ -304,8 +301,6 @@ const UserManagement = () => {
                 placeholder="Filter Jabatan"
                 className="w-full sm:w-[200px]"
               />
-
-              {/* Filter Unit */}
               <SearchableSelect
                 options={unitFilterOptions}
                 value={currentUnitFilter}
@@ -316,11 +311,26 @@ const UserManagement = () => {
                 placeholder="Filter Unit"
                 className="w-full sm:w-[220px]"
               />
+              {/* ← Filter Status Verifikasi */}
+              <SearchableSelect
+                options={[
+                  { value: "", label: "Semua Status" },
+                  { value: "1", label: "Aktif" },
+                  { value: "0", label: "Belum Verifikasi" },
+                ]}
+                value={currentVerifiedFilter}
+                onValueChange={(v) => {
+                  setCurrentVerifiedFilter(v);
+                  handleChangePage(1);
+                }}
+                placeholder="Filter Status"
+                className="w-full sm:w-[180px]"
+              />
             </div>
           </div>
         </div>
 
-        {/* ── KOMPONEN DATA TABLE ── */}
+        {/* ── DATA TABLE ── */}
         <div className="bg-white p-2 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
           <DataTable
             header={[
@@ -347,20 +357,22 @@ const UserManagement = () => {
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
           />
-
           <DialogDeleteUser
             open={selectedAction !== null && selectedAction.type === "delete"}
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
           />
-
           <DialogResetPassword
-            open={
-              selectedAction !== null &&
-              selectedAction.type === "reset-password"
-            }
+            open={selectedAction !== null && selectedAction.type === "reset-password"}
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
+          />
+          {/* ← Dialog Verifikasi User */}
+          <DialogVerifyUser
+            open={verifyAction !== null}
+            currentData={verifyAction ?? undefined}
+            handleChangeAction={(open) => { if (!open) setVerifyAction(null); }}
+            refetch={refetch}
           />
         </div>
       </div>

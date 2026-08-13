@@ -7,10 +7,12 @@ export type Preview = {
 export interface UserData {
   id: string;
   email: string;
-  role: "Admin" | "Mahasiswa" | "Dosen" | "Pegawai";
+  role: "Admin" | "Mahasiswa" | "Dosen" | "Pegawai" | "Dosen_Ext";
   nidn?: string;
   npm?: string;
   nik?: string;
+  nama_lengkap?: string;
+  instansi_ext?: string;
   unit_id?: number | null;
   unit?: {
     id: number;
