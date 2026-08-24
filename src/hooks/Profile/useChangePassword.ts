@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 import { useLogout } from "@/hooks/Auth/useLogout";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const changePasswordSchema = z
   .object({
@@ -50,7 +51,7 @@ const useChangePassword = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);

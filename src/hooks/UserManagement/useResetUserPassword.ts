@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const resetPasswordSchema = z
   .object({
@@ -50,7 +51,7 @@ const useResetUserPassword = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);

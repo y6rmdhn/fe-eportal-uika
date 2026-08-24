@@ -1,9 +1,12 @@
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { useGetPermissions } from "@/hooks/Permissions/usePermissions";
+import { useGetPermissionsPaged } from "@/hooks/Permissions/usePermissions";
+import { useGetAppModules } from "@/hooks/AppModules/useAppModules";
+import PaginationDatatable from "@/common/PaginationTable";
+import { Input } from "@/components/ui/input";
 import type { Permission } from "@/types/general.type";
-import { useMemo, useState } from "react";
-import { Plus, Edit2, Trash2, Trash, FolderOpen, Layers, Shield, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Edit2, Trash2, Trash, FolderOpen, Layers, Shield, Loader2, Search } from "lucide-react";
 import DialogCreatePermission from "./Dialog/DialogCreatePermission";
 import DialogUpdatePermission from "./Dialog/DialogUpdatePermission";
 import DialogDeletePermission from "./Dialog/DialogDeletePermission";
@@ -14,9 +17,36 @@ interface GroupedPermissions {
   permissions: Permission[];
 }
 
+const PER_PAGE = 25;
+
 const Permissions = () => {
-  const { data, isLoading } = useGetPermissions();
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [moduleFilter, setModuleFilter] = useState<number | "">("");
+
+  // Debounce supaya tiap ketikan tidak memicu request
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const { data, isLoading, isFetching } = useGetPermissionsPaged({
+    page,
+    per_page: PER_PAGE,
+    search: search || undefined,
+    appModule_id: moduleFilter === "" ? undefined : moduleFilter,
+  });
+
+  const { data: modulesData } = useGetAppModules();
+  const appModules = modulesData?.data || [];
+
   const permissions: Permission[] = useMemo(() => data?.data || [], [data]);
+  const meta = data?.meta;
+  const totalPages = meta?.last_page ?? 1;
 
   const [createOpen, setCreateOpen]       = useState(false);
   const [selectedIds, setSelectedIds]     = useState<number[]>([]);
@@ -114,6 +144,44 @@ const Permissions = () => {
           </div>
         </div>
 
+        {/* ── TOOLBAR: cari + filter modul ── */}
+        <div className="flex flex-col sm:flex-row gap-3 bg-white px-5 py-4 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Cari nama permission, contoh: users.create"
+              className="pl-9 h-10"
+            />
+          </div>
+
+          <select
+            value={moduleFilter}
+            onChange={(e) => {
+              setModuleFilter(e.target.value === "" ? "" : Number(e.target.value));
+              setPage(1);
+            }}
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:w-64"
+          >
+            <option value="">Semua modul</option>
+            {appModules.map((mod: { id: number; name: string }) => (
+              <option key={mod.id} value={mod.id}>
+                {mod.name}
+              </option>
+            ))}
+          </select>
+
+          {meta && (
+            <div className="flex items-center text-xs font-medium text-gray-500 whitespace-nowrap px-1">
+              {meta.total === 0
+                ? "Tidak ada hasil"
+                : `Menampilkan ${meta.from}-${meta.to} dari ${meta.total}`}
+              {isFetching && <Loader2 className="ml-2 h-3 w-3 animate-spin text-emerald-600" />}
+            </div>
+          )}
+        </div>
+
         {/* ── INFO SELEKSI ── */}
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium">
@@ -126,7 +194,7 @@ const Permissions = () => {
                 className="ml-3 text-xs text-emerald-600 underline hover:text-emerald-800 transition-colors"
                 onClick={() => setSelectedIds(permissions.map((p) => p.id))}
               >
-                Pilih semua ({permissions.length})
+                Pilih semua di halaman ini ({permissions.length})
               </button>
             )}
             <button
@@ -153,9 +221,13 @@ const Permissions = () => {
             <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800">Belum Ada Permission</h3>
+            <h3 className="text-lg font-bold text-gray-800">
+              {search || moduleFilter !== "" ? "Tidak Ada Hasil" : "Belum Ada Permission"}
+            </h3>
             <p className="text-sm text-gray-500 max-w-sm mt-1">
-              Silakan tambahkan permission baru dengan menekan tombol di atas.
+              {search || moduleFilter !== ""
+                ? "Tidak ada permission yang cocok dengan pencarian atau filter modul yang dipilih."
+                : "Silakan tambahkan permission baru dengan menekan tombol di atas."}
             </p>
           </div>
         ) : (
@@ -264,6 +336,20 @@ const Permissions = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── PAGINATION ── */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex justify-center bg-white py-4 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+            <PaginationDatatable
+              currentPage={page}
+              totalPages={totalPages}
+              onChangePage={(p) => {
+                setPage(p);
+                setSelectedIds([]);
+              }}
+            />
           </div>
         )}
 

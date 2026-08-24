@@ -2,6 +2,7 @@ import admin from "@/services/api/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const useGetSsoClients = () => {
   const { data, isLoading, refetch } = useQuery({
@@ -35,7 +36,7 @@ export const useCreateSsoClient = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);
@@ -72,7 +73,7 @@ export const useUpdateSsoClient = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);
@@ -96,7 +97,7 @@ export const useDeleteSsoClient = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);
@@ -120,7 +121,7 @@ export const useResetSsoClientSecret = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);

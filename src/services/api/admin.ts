@@ -71,6 +71,7 @@ const admin = {
     per_page?: number;
     status?: string;
     device_type?: string;
+    search?: string;
   }) {
     return network.get("/admins/security/logs/grouped", { params });
   },
@@ -93,12 +94,19 @@ const admin = {
   },
   getActivityLogs(
     id: string,
-    params?: { type?: string; per_page?: number; page?: number },
+    params?: {
+      type?: string;
+      per_page?: number;
+      page?: number;
+      date_from?: string;
+      date_to?: string;
+    },
   ) {
     return network.get(`/admins/${id}/activity-logs`, { params });
   },
   getAllActivityLogs(params?: {
     type?: string;
+    types?: string;
     exclude_types?: string;
     date_from?: string;
     date_to?: string;
@@ -108,10 +116,23 @@ const admin = {
   }) {
     return network.get("/admins/activity-logs", { params });
   },
+  // Daftar tipe untuk dropdown filter — sebelumnya di-hardcode di komponen,
+  // sehingga tipe aktivitas baru tidak pernah muncul sebagai pilihan.
+  getActivityLogTypes() {
+    return network.get("/admins/activity-logs/types");
+  },
+  getActivityLogStats(days = 7) {
+    return network.get("/admins/activity-logs/stats", { params: { days } });
+  },
 
   // ─── App Modules ───────────────────────────────────────────────────────────
+  // Daftar penuh untuk selector/dropdown. Endpoint-nya dipaginasi secara
+  // default, jadi ?all=1 dipakai saat pemanggil butuh seluruh isinya.
   getAppModules() {
-    return network.get("/admins/app-modules");
+    return network.get("/admins/app-modules", { params: { all: 1 } });
+  },
+  getAppModulesPaged(params: { page?: number; per_page?: number; search?: string }) {
+    return network.get("/admins/app-modules", { params });
   },
   getAppModule(id: number) {
     return network.get(`/admins/app-modules/${id}`);
@@ -131,7 +152,10 @@ const admin = {
 
   // ─── Roles ─────────────────────────────────────────────────────────────────
   getRoles() {
-    return network.get("/admins/roles");
+    return network.get("/admins/roles", { params: { all: 1 } });
+  },
+  getRolesPaged(params: { page?: number; per_page?: number; search?: string }) {
+    return network.get("/admins/roles", { params });
   },
   getUnits(params?: { per_page?: number; page?: number; search?: string }) {
     return network.get("/admins/units", { params });
@@ -160,7 +184,15 @@ const admin = {
 
   // ─── Permissions ───────────────────────────────────────────────────────────
   getPermissions() {
-    return network.get("/admins/permissions");
+    return network.get("/admins/permissions", { params: { all: 1 } });
+  },
+  getPermissionsPaged(params: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    appModule_id?: number;
+  }) {
+    return network.get("/admins/permissions", { params });
   },
   getPermission(id: number) {
     return network.get(`/admins/permissions/${id}`);

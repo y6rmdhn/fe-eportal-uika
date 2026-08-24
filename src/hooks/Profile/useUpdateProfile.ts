@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -87,7 +88,7 @@ const useUpdateProfile = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }

@@ -1,109 +1,102 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Dashboard from "./components/pages/Dashboard";
-import Login from "./components/pages/Auth/Login";
 import authLoader from "@/components/layouts/AuthLayout/AuthLayout.loader.ts";
-import ResetPassword from "@/components/pages/ResetPassword";
-import GoogleCallback from "@/components/pages/Auth/GoogleCallback";
 import adminLoader from "./components/layouts/AdminLayout/AdminLayout.loader";
-import AdminDashboard from "./components/pages/Admin/Admin";
 import mainLoader from "./components/layouts/MainLayout/MainLayout.loader";
-import UserManagement from "./components/pages/Admin/UserManagement";
-import LoginLog from "./components/pages/Admin/LoginLog";
-import Profile from "./components/pages/Profile";
-import AppModules from "./components/pages/Admin/AppModules";
-import Roles from "./components/pages/Admin/Roles";
-import Permissions from "./components/pages/Admin/Permissions";
-import RolePermissions from "./components/pages/Admin/RolePermissions";
-import SsoKeys from "./components/pages/Admin/SsoKeys";
-import Register from "./components/pages/Auth/Register";
-import Units from "./components/pages/Admin/Units";
+import Login from "./components/pages/Auth/Login";
+
+/**
+ * Halaman dimuat lewat route-level `lazy` (React Router v7) supaya tiap
+ * halaman jadi chunk terpisah. Hanya Login yang di-import statis karena
+ * itu layar pertama yang dilihat hampir semua pengguna — memecahnya justru
+ * menambah satu round-trip sebelum form login tampil.
+ */
+const page = (loader: () => Promise<{ default: React.ComponentType }>) => async () => {
+  const { default: Component } = await loader();
+  return { Component };
+};
+
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      loader: mainLoader,
+      lazy: page(() => import("./components/pages/Dashboard")),
+    },
+    {
+      path: "/profile",
+      loader: mainLoader,
+      lazy: page(() => import("./components/pages/Profile")),
+    },
+    {
+      path: "/login",
+      loader: authLoader,
+      element: <Login />,
+    },
+    {
+      path: "/auth/google/success",
+      lazy: page(() => import("./components/pages/Auth/GoogleCallback")),
+    },
+    {
+      path: "/register",
+      lazy: page(() => import("./components/pages/Auth/Register")),
+    },
+    {
+      path: "/reset-password",
+      lazy: page(() => import("./components/pages/ResetPassword")),
+    },
+    {
+      path: "/admin",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/Admin")),
+    },
+    {
+      path: "/admin/user-management",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/UserManagement")),
+    },
+    {
+      path: "/admin/app-modules",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/AppModules")),
+    },
+    {
+      path: "/admin/roles",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/Roles")),
+    },
+    {
+      path: "/admin/permissions",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/Permissions")),
+    },
+    {
+      path: "/admin/role-permissions",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/RolePermissions")),
+    },
+    {
+      path: "/admin/log",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/LoginLog")),
+    },
+    {
+      path: "/admin/sso-keys",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/SsoKeys")),
+    },
+    {
+      path: "/admin/units",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/Units")),
+    },
+  ],
+  {
+    basename: "/",
+  },
+);
 
 function App() {
-  const router = createBrowserRouter(
-    [
-      {
-        path: "/",
-        loader: mainLoader,
-        element: <Dashboard />,
-      },
-      {
-        path: "/profile",
-        loader: mainLoader,
-        element: <Profile />,
-      },
-      {
-        path: "/login",
-        loader: authLoader,
-        element: <Login />,
-      },
-      {
-        path: "/auth/google/success",
-        element: <GoogleCallback />,
-      },
-      {
-        path: "/register",
-        element: <Register />,
-      },
-      {
-        path: "/reset-password",
-        element: <ResetPassword />,
-      },
-      {
-        path: "/admin",
-        loader: adminLoader,
-        element: <AdminDashboard />,
-      },
-      {
-        path: "/admin/user-management",
-        loader: adminLoader,
-        element: <UserManagement />,
-      },
-      {
-        path: "/admin/app-modules",
-        loader: adminLoader,
-        element: <AppModules />,
-      },
-      {
-        path: "/admin/roles",
-        loader: adminLoader,
-        element: <Roles />,
-      },
-      {
-        path: "/admin/permissions",
-        loader: adminLoader,
-        element: <Permissions />,
-      },
-      {
-        path: "/admin/role-permissions",
-        loader: adminLoader,
-        element: <RolePermissions />,
-      },
-      {
-        path: "/admin/log",
-        loader: adminLoader,
-        element: <LoginLog />,
-      },
-      {
-        path: "/admin/sso-keys",
-        loader: adminLoader,
-        element: <SsoKeys />,
-      },
-      {
-        path: "/admin/units",
-        loader: adminLoader,
-        element: <Units />,
-      },
-    ],
-    {
-      basename: "/",
-    },
-  );
-
-  return (
-    <>
-      <RouterProvider router={router} />
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
