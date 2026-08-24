@@ -2,6 +2,7 @@ import admin from "@/services/api/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const useGetUnits = (params?: {
   per_page?: number;
@@ -30,7 +31,7 @@ export const useCreateUnit = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -57,7 +58,7 @@ export const useUpdateUnit = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -78,7 +79,7 @@ export const useDeleteUnit = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }

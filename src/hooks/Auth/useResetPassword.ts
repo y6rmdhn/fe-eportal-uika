@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -71,7 +72,7 @@ const useResetPassword = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error("Terjadi kesalahan");
@@ -101,7 +102,7 @@ const useResetPassword = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error("Terjadi kesalahan");

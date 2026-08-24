@@ -2,6 +2,7 @@ import admin from "@/services/api/admin";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export const useGetPermissions = () => {
   const { data, isLoading, refetch } = useQuery({
@@ -14,6 +15,23 @@ export const useGetPermissions = () => {
   return { data, isLoading, refetch };
 };
 
+export const useGetPermissionsPaged = (params: {
+  page: number;
+  per_page: number;
+  search?: string;
+  appModule_id?: number;
+}) => {
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["permissions-paged", params],
+    queryFn: async () => {
+      const res = await admin.getPermissionsPaged(params);
+      return res.data;
+    },
+    placeholderData: (prev) => prev,
+  });
+  return { data, isLoading, isFetching, refetch };
+};
+
 export const useCreatePermission = () => {
   const queryClient = useQueryClient();
 
@@ -22,11 +40,12 @@ export const useCreatePermission = () => {
       admin.createPermission(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       toast.success("Permission berhasil dibuat");
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -49,11 +68,12 @@ export const useUpdatePermission = () => {
     }) => admin.updatePermission(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       toast.success("Permission berhasil diperbarui");
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -70,11 +90,12 @@ export const useDeletePermission = () => {
     mutationFn: (id: number) => admin.deletePermission(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       toast.success("Permission berhasil dihapus");
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -94,6 +115,7 @@ export const useBulkCreatePermission = () => {
     }) => admin.bulkCreatePermission(payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       const created = res.data?.data?.created?.length ?? 0;
       const skipped = res.data?.data?.skipped?.length ?? 0;
       if (skipped > 0) {
@@ -104,7 +126,7 @@ export const useBulkCreatePermission = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -123,6 +145,7 @@ export const useBulkUpdatePermission = () => {
     }) => admin.bulkUpdatePermission(payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       const updated = res.data?.data?.updated?.length ?? 0;
       const errors  = res.data?.data?.errors ?? [];
       if (errors.length > 0) {
@@ -133,7 +156,7 @@ export const useBulkUpdatePermission = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }
@@ -151,6 +174,7 @@ export const useBulkDeletePermission = () => {
       admin.bulkDeletePermission(payload),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["permissions-paged"] });
       const deleted  = res.data?.data?.deleted ?? 0;
       const notFound = res.data?.data?.not_found ?? [];
       if (notFound.length > 0) {
@@ -161,7 +185,7 @@ export const useBulkDeletePermission = () => {
     },
     onError(error) {
       if (error instanceof AxiosError) {
-        toast.error(error.response?.data?.message || "Terjadi kesalahan server");
+        toast.error(getApiErrorMessage(error));
       } else {
         toast.error(error.message);
       }

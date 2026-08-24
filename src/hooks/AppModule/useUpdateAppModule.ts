@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { appModuleSchema, type AppModuleForm } from "./useCreateAppModule";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const useUpdateAppModule = () => {
   const queryClient = useQueryClient();
@@ -41,7 +42,7 @@ const useUpdateAppModule = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);

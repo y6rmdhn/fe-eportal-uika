@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const ROLES = ["admin", "mahasiswa", "dosen"] as const;
 
@@ -65,7 +66,7 @@ const useCreateAppModule = () => {
     onError(error) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || "Terjadi kesalahan server",
+          getApiErrorMessage(error),
         );
       } else {
         toast.error(error.message);

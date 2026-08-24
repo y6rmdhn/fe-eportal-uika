@@ -100,6 +100,18 @@ function getRoleBadge(role?: string) {
   };
 }
 
+/** Gradient kartu jabatan — selaras dengan warna badge di getRoleBadge() */
+function getRoleTheme(role?: string) {
+  const r = (role ?? "").toLowerCase();
+  if (r.includes("admin"))
+    return { from: "#e11d48", to: "#be123c", shadow: "rgba(225,29,72,0.25)" };
+  if (r.includes("dosen"))
+    return { from: "#0284c7", to: "#0369a1", shadow: "rgba(2,132,199,0.25)" };
+  if (r.includes("mahasiswa"))
+    return { from: "#059669", to: "#047857", shadow: "rgba(5,150,105,0.25)" };
+  return { from: "#7c3aed", to: "#6d28d9", shadow: "rgba(124,58,237,0.25)" };
+}
+
 interface AppModule {
   id: number;
   name: string;
@@ -119,6 +131,7 @@ export default function Dashboard() {
     { role_id: number; role_name: string }[]
   >([]);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [pendingRoleId, setPendingRoleId] = useState<number | null>(null);
   const { handleLogout, isPendingLogout } = useLogout();
   const navigate = useNavigate();
 
@@ -138,10 +151,6 @@ export default function Dashboard() {
   const modules = modulesResponse?.modules ?? [];
   const isAdmin = modulesResponse?.is_admin ?? false;
   const isLoading = isModulesLoading || isUserLoading;
-
-  console.log("modulesResponse:", modulesResponse);
-  console.log("isAdmin:", isAdmin);
-  console.log("userData:", userData);
 
   // ── Buka aplikasi via SSO redirect ─────────────────────────────────────────
   const handleOpenApp = async (mod: AppModule) => {
@@ -175,8 +184,7 @@ export default function Dashboard() {
         withCredentials: true,
       });
 
-      console.log(response.data);
-
+      // Jangan log response di sini — redirect_url memuat scoped token SSO.
       window.location.href = response.data.redirect_url;
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -187,6 +195,20 @@ export default function Dashboard() {
       }
     } finally {
       setLoadingApp(null);
+    }
+  };
+
+  // ── Pilih jabatan lalu lanjut redirect ─────────────────────────────────────
+  const handleSelectRole = async (roleId: number) => {
+    if (!selectedModule || pendingRoleId !== null) return;
+    setPendingRoleId(roleId);
+    try {
+      // Dialog sengaja dibiarkan terbuka supaya spinner kartu terlihat
+      // sampai browser benar-benar berpindah halaman.
+      await proceedRedirect(selectedModule, roleId);
+    } finally {
+      setPendingRoleId(null);
+      setIsRoleModalOpen(false);
     }
   };
 
@@ -518,8 +540,15 @@ export default function Dashboard() {
       </div>
 
       {/* ── Dialog Pemilihan Jabatan/Role ── */}
-      <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-6 bg-white border border-gray-100 shadow-2xl">
+      <Dialog
+        open={isRoleModalOpen}
+        onOpenChange={(open) => {
+          // Cegah dialog tertutup saat proses redirect sedang berjalan
+          if (!open && pendingRoleId !== null) return;
+          setIsRoleModalOpen(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg rounded-3xl p-6 bg-white border border-gray-100 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
               <Shield size={20} className="text-emerald-600" />
@@ -535,37 +564,92 @@ export default function Dashboard() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-3 py-4">
+          <div
+            className={`grid gap-3 py-4 max-h-[52vh] overflow-y-auto ${
+              availableRoles.length === 1
+                ? "grid-cols-1"
+                : availableRoles.length <= 4
+                  ? "grid-cols-2"
+                  : "grid-cols-2 sm:grid-cols-3"
+            }`}
+          >
             {availableRoles.map((role) => {
-              const badge = getRoleBadge(role.role_name);
+              const theme = getRoleTheme(role.role_name);
+              const initials = getInitials(role.role_name);
+              const isPending = pendingRoleId === role.role_id;
+              const isDimmed = pendingRoleId !== null && !isPending;
+
               return (
                 <button
                   key={role.role_id}
-                  onClick={() => {
-                    setIsRoleModalOpen(false);
-                    if (selectedModule) {
-                      proceedRedirect(selectedModule, role.role_id);
-                    }
-                  }}
-                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-emerald-50/50 hover:border-emerald-200 border border-gray-100 rounded-2xl text-left transition-all group cursor-pointer hover:shadow-sm"
+                  onClick={() => handleSelectRole(role.role_id)}
+                  disabled={pendingRoleId !== null}
+                  title={role.role_name}
+                  aria-label={`Masuk sebagai ${role.role_name}`}
+                  className={`group relative flex flex-col items-center text-center p-4 bg-white rounded-2xl border border-gray-100
+                    transition-all duration-300 overflow-hidden
+                    hover:-translate-y-1 hover:border-transparent hover:shadow-[0_14px_36px_-10px_var(--role-shadow)]
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500
+                    ${isPending ? "cursor-wait" : "cursor-pointer"}
+                    ${isDimmed ? "opacity-40 pointer-events-none" : ""}`}
+                  style={
+                    { "--role-shadow": theme.shadow } as React.CSSProperties
+                  }
                 >
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-800 text-sm group-hover:text-emerald-800 transition-colors">
-                      {role.role_name}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-medium mt-0.5">
-                      Klik untuk masuk sebagai {role.role_name}
-                    </span>
-                  </div>
+                  {/* Hover glow overlay */}
                   <div
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${badge.bg} ${badge.text} ${badge.border}`}
+                    className="absolute inset-0 opacity-0 group-hover:opacity-[0.06] transition-opacity duration-300"
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.from}, ${theme.to})`,
+                    }}
+                  />
+
+                  {/* Inisial jabatan */}
+                  <div
+                    className="relative w-14 h-14 mb-3 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg]"
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.from}, ${theme.to})`,
+                      boxShadow: `0 8px 22px -6px ${theme.shadow}`,
+                    }}
                   >
-                    Pilih
+                    {initials}
+                    {isPending && (
+                      <div className="absolute inset-0 bg-black/25 rounded-2xl flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
                   </div>
+
+                  {/* Nama jabatan */}
+                  <span className="relative font-extrabold text-[13px] text-gray-900 tracking-tight leading-tight capitalize line-clamp-2">
+                    {role.role_name}
+                  </span>
+
+                  {/* Hint */}
+                  <span className="relative text-[10px] text-gray-400 font-medium mt-1 flex items-center gap-1">
+                    {isPending ? (
+                      "Menghubungkan…"
+                    ) : (
+                      <>
+                        Masuk
+                        <ArrowRight
+                          size={9}
+                          strokeWidth={3}
+                          className="transition-transform duration-300 group-hover:translate-x-0.5"
+                        />
+                      </>
+                    )}
+                  </span>
                 </button>
               );
             })}
           </div>
+
+          {availableRoles.length > 1 && (
+            <p className="text-[11px] text-gray-400 font-medium text-center -mt-1">
+              {availableRoles.length} jabatan tersedia untuk modul ini
+            </p>
+          )}
         </DialogContent>
       </Dialog>
     </section>

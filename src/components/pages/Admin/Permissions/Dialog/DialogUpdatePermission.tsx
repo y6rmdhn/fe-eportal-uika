@@ -4,17 +4,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { useBulkUpdatePermission } from "@/hooks/Permissions/usePermissions";
+import { useUpdatePermission } from "@/hooks/Permissions/usePermissions";
 import { useGetAppModules } from "@/hooks/AppModules/useAppModules";
 import type { AppModule, Permission } from "@/types/general.type";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Pencil } from "lucide-react";
 
 // Daftar aksi standar (harus sinkron dengan dialog create)
 const PERMISSION_ACTIONS = [
@@ -48,143 +49,83 @@ function parseName(name: string): { prefix: string; action: string } {
 }
 
 /**
- * Dialog Update Permission — mode Bulk.
+ * Dialog Edit Permission — selalu untuk SATU permission.
  *
- * Dua mode penggunaan:
- * 1. Edit satu permission (currentData) → prefix & aksi lama di-pre-fill.
- * 2. Edit sekelompok permission sekaligus (currentGroup) → prefix dari item pertama.
- *
- * Kedua mode mendukung custom action di luar daftar preset.
+ * Berbeda dengan dialog Tambah yang membuat banyak permission sekaligus,
+ * dialog ini mengubah satu baris yang dipilih dari tabel: aksinya
+ * single-select, dan perubahannya ditampilkan sebagai "sebelum → sesudah".
  */
 export default function DialogUpdatePermission({
   open,
   onOpenChange,
   currentData,
-  currentGroup,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentData?: Permission;
-  currentGroup?: Permission[];
 }) {
-  const [prefix, setPrefix]            = useState("");
-  const [selectedActions, setSelected] = useState<string[]>([]);
-  const [appModuleId, setAppModuleId]  = useState<number | "">("");
-  const [customInput, setCustomInput]  = useState("");
-  const customInputRef                 = useRef<HTMLInputElement>(null);
+  const [prefix, setPrefix]           = useState("");
+  const [action, setAction]           = useState("");
+  const [appModuleId, setAppModuleId] = useState<number | "">("");
 
-  const { mutateBulkUpdate, isPendingBulkUpdate } = useBulkUpdatePermission();
+  const { mutateUpdate, isPendingUpdate } = useUpdatePermission();
   const { data: modulesData, isLoading: isLoadingModules } = useGetAppModules();
   const appModules: AppModule[] = modulesData?.data || [];
 
-  // Pre-fill saat currentData / currentGroup berubah
+  // Pre-fill dari permission yang sedang diedit
   useEffect(() => {
-    if (currentData) {
-      const { prefix: p, action: a } = parseName(currentData.name);
-      setPrefix(p);
-      setSelected(a ? [a] : []);
-      setAppModuleId(currentData.appModule_id ?? "");
-    } else if (currentGroup && currentGroup.length > 0) {
-      const { prefix: p } = parseName(currentGroup[0].name);
-      setPrefix(p);
-      const actions = currentGroup
-        .map((perm) => parseName(perm.name).action)
-        .filter(Boolean);
-      setSelected(actions);
-      setAppModuleId(currentGroup[0].appModule_id ?? "");
-    }
-    setCustomInput("");
-  }, [currentData, currentGroup]);
+    if (!currentData) return;
+    const { prefix: p, action: a } = parseName(currentData.name);
+    setPrefix(p);
+    setAction(a);
+    setAppModuleId(currentData.appModule_id ?? "");
+  }, [currentData]);
 
-  const toggleAction = (val: string) => {
-    setSelected((prev) =>
-      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
-    );
-  };
+  const isCustomAction = action !== "" && !PRESET_VALUES.has(action);
 
-  // Tambah custom action dari input
-  const addCustomAction = () => {
-    const val = customInput.trim().toLowerCase().replace(/[^a-z0-9-_]/g, "");
-    if (!val) return;
-    if (!selectedActions.includes(val)) {
-      setSelected((prev) => [...prev, val]);
-    }
-    setCustomInput("");
-    customInputRef.current?.focus();
-  };
+  // Nama hasil perubahan
+  const nextName = useMemo(() => {
+    const base = prefix.trim().toLowerCase().replace(/\s+/g, "-");
+    if (!base || !action) return "";
+    return `${base}.${action}`;
+  }, [prefix, action]);
 
-  const handleCustomKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addCustomAction();
-    }
-  };
+  const isValid = prefix.trim() !== "" && action !== "" && appModuleId !== "";
 
-  // Preview nama-nama permission yang akan dikirim
-  const previews = useMemo(() => {
-    const base = prefix.trim();
-    if (!base || selectedActions.length === 0) return [];
-    return selectedActions.map((a) => `${base}.${a}`);
-  }, [prefix, selectedActions]);
-
-  const isValid = prefix.trim() !== "" && selectedActions.length > 0 && appModuleId !== "";
+  // Tidak ada yang berubah → tombol simpan dimatikan
+  const isDirty =
+    !!currentData &&
+    (nextName !== currentData.name ||
+      appModuleId !== (currentData.appModule_id ?? ""));
 
   const handleSubmit = () => {
-    if (!isValid) return;
-    const base = prefix.trim().toLowerCase().replace(/\s+/g, "-");
-
-    if (currentData) {
-      // ── Single-edit: kirim 1 item (action pertama yang dipilih) ──
-      mutateBulkUpdate(
-        {
-          permissions: [
-            {
-              id: currentData.id,
-              name: `${base}.${selectedActions[0]}`,
-              appModule_id: appModuleId as number,
-            },
-          ],
+    if (!isValid || !isDirty || !currentData) return;
+    mutateUpdate(
+      {
+        id: currentData.id,
+        payload: {
+          name: nextName,
+          appModule_id: appModuleId as number,
         },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    } else if (currentGroup && currentGroup.length > 0) {
-      // ── Group-edit: cocokkan action lama → baru ──
-      const oldActions = currentGroup.map((perm) => ({
-        ...perm,
-        parsedAction: parseName(perm.name).action,
-      }));
-
-      const permissionsPayload = selectedActions
-        .map((action) => {
-          const match = oldActions.find((p) => p.parsedAction === action);
-          if (match) {
-            return {
-              id: match.id,
-              name: `${base}.${action}`,
-              appModule_id: appModuleId as number,
-            };
-          }
-          return null;
-        })
-        .filter(Boolean) as { id: number; name: string; appModule_id: number }[];
-
-      if (permissionsPayload.length === 0) return;
-      mutateBulkUpdate(
-        { permissions: permissionsPayload },
-        { onSuccess: () => onOpenChange(false) }
-      );
-    }
+      },
+      { onSuccess: () => onOpenChange(false) }
+    );
   };
-
-  const title = currentGroup
-    ? `Edit Group Permission (${currentGroup.length} item)`
-    : "Edit Permission";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil size={16} className="text-blue-600" />
+            Edit Permission
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            Mengubah satu permission:{" "}
+            <span className="font-mono font-semibold text-gray-700">
+              {currentData?.name}
+            </span>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
@@ -228,24 +169,24 @@ export default function DialogUpdatePermission({
             />
           </div>
 
-          {/* Pilih Aksi */}
+          {/* Aksi — single select */}
           <div className="grid gap-2">
             <Label>
               Aksi Permission
               <span className="ml-1.5 text-xs font-normal text-gray-400">
-                (pilih preset atau tambah custom)
+                (pilih satu)
               </span>
             </Label>
 
-            {/* Chip preset */}
             <div className="flex flex-wrap gap-2">
               {PERMISSION_ACTIONS.map((act) => {
-                const active = selectedActions.includes(act.value);
+                const active = action === act.value;
                 return (
                   <button
                     key={act.value}
                     type="button"
-                    onClick={() => toggleAction(act.value)}
+                    aria-pressed={active}
+                    onClick={() => setAction(act.value)}
                     className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all select-none
                       ${active
                         ? act.color + " ring-2 ring-offset-1 ring-current/40 shadow-sm scale-105"
@@ -258,71 +199,50 @@ export default function DialogUpdatePermission({
               })}
             </div>
 
-            {/* Input custom action */}
-            <div className="flex gap-2 mt-1">
-              <Input
-                ref={customInputRef}
-                id="update-perm-custom-action"
-                placeholder="Aksi custom, contoh: approve"
-                value={customInput}
-                onChange={(e) =>
-                  setCustomInput(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""))
-                }
-                onKeyDown={handleCustomKeyDown}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={addCustomAction}
-                disabled={!customInput.trim()}
-                className="shrink-0 border-dashed hover:border-solid hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 transition-all"
-                title="Tambah aksi custom"
+            {/* Aksi custom — mengganti pilihan, bukan menambah */}
+            <div className="grid gap-1.5 mt-1">
+              <Label
+                htmlFor="update-perm-custom-action"
+                className="text-xs font-normal text-gray-400"
               >
-                <Plus size={16} strokeWidth={2.5} />
-              </Button>
+                Atau tulis aksi custom
+              </Label>
+              <Input
+                id="update-perm-custom-action"
+                placeholder="contoh: approve"
+                value={isCustomAction ? action : ""}
+                onChange={(e) =>
+                  setAction(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""))
+                }
+                className={isCustomAction ? "border-purple-300 bg-purple-50/40" : ""}
+              />
             </div>
-
-            {/* Chip custom yang sudah dipilih */}
-            {selectedActions.some((a) => !PRESET_VALUES.has(a)) && (
-              <div className="flex flex-wrap gap-1.5 mt-0.5">
-                {selectedActions
-                  .filter((a) => !PRESET_VALUES.has(a))
-                  .map((a) => (
-                    <span
-                      key={a}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold"
-                    >
-                      {a}
-                      <button
-                        type="button"
-                        onClick={() => toggleAction(a)}
-                        className="ml-0.5 hover:text-purple-900 transition-colors"
-                        title={`Hapus aksi "${a}"`}
-                      >
-                        <X size={11} strokeWidth={2.5} />
-                      </button>
-                    </span>
-                  ))}
-              </div>
-            )}
           </div>
 
-          {/* Preview */}
-          {previews.length > 0 && (
+          {/* Preview sebelum → sesudah */}
+          {currentData && (
             <div className="grid gap-1.5">
-              <Label className="text-xs text-gray-500">Preview permission yang akan disimpan:</Label>
-              <div className="flex flex-wrap gap-1.5 p-3 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                {previews.map((p) => (
-                  <span
-                    key={p}
-                    className="px-2 py-1 bg-white text-gray-700 border border-gray-200 rounded-md text-xs font-mono shadow-sm"
-                  >
-                    {p}
-                  </span>
-                ))}
+              <Label className="text-xs text-gray-500">Perubahan nama:</Label>
+              <div className="flex items-center gap-2 flex-wrap p-3 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                <span className="px-2 py-1 bg-white text-gray-400 border border-gray-200 rounded-md text-xs font-mono line-through">
+                  {currentData.name}
+                </span>
+                <ArrowRight size={13} className="text-gray-400 shrink-0" />
+                <span
+                  className={`px-2 py-1 rounded-md text-xs font-mono border shadow-sm ${
+                    nextName
+                      ? "bg-white text-emerald-700 border-emerald-200 font-semibold"
+                      : "bg-white text-gray-300 border-gray-200"
+                  }`}
+                >
+                  {nextName || "belum lengkap"}
+                </span>
               </div>
+              {!isDirty && isValid && (
+                <p className="text-[11px] text-gray-400">
+                  Belum ada perubahan.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -334,9 +254,9 @@ export default function DialogUpdatePermission({
           <Button
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
             onClick={handleSubmit}
-            disabled={isPendingBulkUpdate || !isValid}
+            disabled={isPendingUpdate || !isValid || !isDirty}
           >
-            {isPendingBulkUpdate ? <Spinner /> : `Simpan (${selectedActions.length})`}
+            {isPendingUpdate ? <Spinner /> : "Simpan Perubahan"}
           </Button>
         </DialogFooter>
       </DialogContent>

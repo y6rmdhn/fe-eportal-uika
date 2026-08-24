@@ -2,6 +2,7 @@ import admin from "@/services/api/admin";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const useDeleteUser = () => {
   const queryClient = useQueryClient();
@@ -22,8 +23,7 @@ const useDeleteUser = () => {
       },
       onError(error) {
         if (error instanceof AxiosError) {
-          const message = error.response?.data?.message;
-          toast.error(message || "Terjadi kesalahan server");
+          toast.error(getApiErrorMessage(error));
         } else {
           toast.error(error.message);
         }

@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 const useUpdateUser = () => {
   const queryClient = useQueryClient();
@@ -37,7 +38,7 @@ const useUpdateUser = () => {
       onError(error) {
         if (error instanceof AxiosError) {
           toast.error(
-            error.response?.data?.message || "Terjadi kesalahan server",
+            getApiErrorMessage(error),
           );
         } else {
           toast.error(error.message);
