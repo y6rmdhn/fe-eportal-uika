@@ -229,14 +229,11 @@ export default function FormUpdateUser<T extends FieldValues>({
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                 <ArrowRightLeft className="w-3.5 h-3.5 text-gray-400" /> Jabatan & Role Akses
               </p>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold px-2.5 py-0.5 rounded-full select-none">
-                Trello Style Drag & Drop
-              </span>
             </div>
 
             {/* Drag & Drop Board Containers */}
             <div className="grid grid-cols-2 gap-4 flex-1">
-              
+
               {/* Available Roles Column */}
               <div
                 onDragOver={(e) => e.preventDefault()}
@@ -350,7 +347,7 @@ export default function FormUpdateUser<T extends FieldValues>({
               </div>
 
             </div>
-            
+
             {form.formState.errors["roles" as Path<T>] && (
               <p className="text-xs text-red-500 font-medium mt-2 flex-shrink-0">
                 {(form.formState.errors["roles" as Path<T>] as any)?.message}

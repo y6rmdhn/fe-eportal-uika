@@ -68,9 +68,6 @@ const AdminLayout = (props: PropsType) => {
                       <h3 className="text-sm font-bold text-gray-900">
                         {adminProfile?.name ?? "Administrator"}
                       </h3>
-                      <p className="text-[11px] text-emerald-600 font-semibold tracking-wide uppercase capitalize">
-                        {adminProfile?.role ?? "Admin"}
-                      </p>
                     </div>
                     <Avatar className="w-10 h-10 rounded-xl">
                       <AvatarImage

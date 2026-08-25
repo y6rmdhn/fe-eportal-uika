@@ -152,6 +152,10 @@ export default function Dashboard() {
   const isAdmin = modulesResponse?.is_admin ?? false;
   const isLoading = isModulesLoading || isUserLoading;
 
+
+  console.log("anjing",modulesResponse);
+
+
   // ── Buka aplikasi via SSO redirect ─────────────────────────────────────────
   const handleOpenApp = async (mod: AppModule) => {
     setLoadingApp(mod.id);
@@ -400,12 +404,6 @@ export default function Dashboard() {
                     <LayoutGrid size={12} strokeWidth={2.5} />
                     {modules.length} Aplikasi
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 border border-rose-100 rounded-xl text-xs font-bold text-rose-700">
-                      <Shield size={12} strokeWidth={2.5} />
-                      Admin
-                    </div>
-                  )}
                 </div>
               )}
             </div>

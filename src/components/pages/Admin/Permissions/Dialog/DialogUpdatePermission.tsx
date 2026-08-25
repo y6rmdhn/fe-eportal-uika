@@ -16,6 +16,7 @@ import { useGetAppModules } from "@/hooks/AppModules/useAppModules";
 import type { AppModule, Permission } from "@/types/general.type";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Pencil } from "lucide-react";
+import { parseName } from "../permissionName";
 
 // Daftar aksi standar (harus sinkron dengan dialog create)
 const PERMISSION_ACTIONS = [
@@ -33,20 +34,6 @@ const PRESET_VALUES = new Set(PERMISSION_ACTIONS.map((a) => a.value));
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
-/**
- * Parse nama permission menjadi { prefix, action }.
- * Contoh: "users.create" → { prefix: "users", action: "create" }
- * Contoh: "users.approve" → { prefix: "users", action: "approve" }  ← custom action tetap terbaca
- * Jika tidak ada titik, seluruhnya jadi prefix (action kosong).
- */
-function parseName(name: string): { prefix: string; action: string } {
-  const dotIdx = name.lastIndexOf(".");
-  if (dotIdx === -1) return { prefix: name, action: "" };
-  return {
-    prefix: name.slice(0, dotIdx),
-    action: name.slice(dotIdx + 1),
-  };
-}
 
 /**
  * Dialog Edit Permission — selalu untuk SATU permission.
