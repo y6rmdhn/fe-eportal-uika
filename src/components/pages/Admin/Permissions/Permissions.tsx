@@ -6,9 +6,10 @@ import PaginationDatatable from "@/common/PaginationTable";
 import { Input } from "@/components/ui/input";
 import type { Permission } from "@/types/general.type";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Edit2, Trash2, Trash, FolderOpen, Layers, Shield, Loader2, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, Trash, FolderOpen, Layers, Shield, Loader2, Search, PencilRuler } from "lucide-react";
 import DialogCreatePermission from "./Dialog/DialogCreatePermission";
 import DialogUpdatePermission from "./Dialog/DialogUpdatePermission";
+import DialogBulkEditPermission from "./Dialog/DialogBulkEditPermission";
 import DialogDeletePermission from "./Dialog/DialogDeletePermission";
 
 interface GroupedPermissions {
@@ -51,6 +52,14 @@ const Permissions = () => {
   const [createOpen, setCreateOpen]       = useState(false);
   const [selectedIds, setSelectedIds]     = useState<number[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+
+  // Seleksi selalu dalam satu halaman (direset saat pindah halaman),
+  // jadi objek lengkapnya cukup diambil dari data halaman ini.
+  const selectedPermissions = useMemo(
+    () => permissions.filter((p) => selectedIds.includes(p.id)),
+    [permissions, selectedIds],
+  );
 
   const [selectedAction, setSelectedAction] = useState<{
     data: Permission;
@@ -124,14 +133,25 @@ const Permissions = () => {
           <div className="flex items-center gap-3">
             {/* Tombol Bulk Delete — muncul hanya saat ada item dicentang */}
             {selectedIds.length > 0 && (
-              <Button
-                variant="destructive"
-                className="h-11 rounded-xl shadow-sm font-bold px-5 transition-all flex items-center gap-2"
-                onClick={() => setBulkDeleteOpen(true)}
-              >
-                <Trash className="h-4 w-4" strokeWidth={2.5} />
-                Hapus ({selectedIds.length})
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-xl shadow-sm font-bold px-5 border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 transition-all flex items-center gap-2"
+                  onClick={() => setBulkEditOpen(true)}
+                >
+                  <PencilRuler className="h-4 w-4" strokeWidth={2.5} />
+                  Edit ({selectedIds.length})
+                </Button>
+
+                <Button
+                  variant="destructive"
+                  className="h-11 rounded-xl shadow-sm font-bold px-5 transition-all flex items-center gap-2"
+                  onClick={() => setBulkDeleteOpen(true)}
+                >
+                  <Trash className="h-4 w-4" strokeWidth={2.5} />
+                  Hapus ({selectedIds.length})
+                </Button>
+              </>
             )}
 
             <Button
@@ -198,7 +218,13 @@ const Permissions = () => {
               </button>
             )}
             <button
-              className="ml-auto text-xs text-emerald-600 underline hover:text-emerald-800 transition-colors"
+              className="ml-auto text-xs font-bold text-emerald-700 underline hover:text-emerald-900 transition-colors"
+              onClick={() => setBulkEditOpen(true)}
+            >
+              Edit sekaligus
+            </button>
+            <button
+              className="text-xs text-emerald-600 underline hover:text-emerald-800 transition-colors"
               onClick={() => setSelectedIds([])}
             >
               Batalkan seleksi
@@ -360,6 +386,13 @@ const Permissions = () => {
           open={selectedAction?.type === "update"}
           onOpenChange={(o) => !o && setSelectedAction(null)}
           currentData={selectedAction?.data}
+        />
+
+        <DialogBulkEditPermission
+          open={bulkEditOpen}
+          onOpenChange={setBulkEditOpen}
+          selectedPermissions={selectedPermissions}
+          onDone={() => setSelectedIds([])}
         />
 
         {/* Single delete */}

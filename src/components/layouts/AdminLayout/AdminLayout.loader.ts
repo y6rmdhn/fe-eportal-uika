@@ -13,7 +13,9 @@ export default async function adminLoader() {
       staleTime: 5 * 60 * 1000, // cache 5 menit
     });
 
-    const isAllowed = dataProfile.role?.toLowerCase() === "admin";
+
+    // const isAllowed = dataProfile.role?.toLowerCase() === "admin";
+    const isAllowed = dataProfile.jabatans?.includes("admin");
     if (!isAllowed) return redirect("/");
 
     return dataProfile;

@@ -15,6 +15,17 @@ const page = (loader: () => Promise<{ default: React.ComponentType }>) => async 
   return { Component };
 };
 
+/**
+ * Basename harus mengikuti `base` di vite.config.ts — lokal "/" dan hasil
+ * build "/eportal/". Kalau di-hardcode "/", router menerima URL "/eportal/"
+ * dan tidak menemukan route yang cocok sehingga muncul 404 dari ErrorBoundary.
+ * Trailing slash dibuang karena React Router mengharapkan basename tanpa itu.
+ */
+const BASENAME =
+  import.meta.env.BASE_URL.length > 1
+    ? import.meta.env.BASE_URL.replace(/\/$/, "")
+    : "/";
+
 const router = createBrowserRouter(
   [
     {
@@ -91,7 +102,7 @@ const router = createBrowserRouter(
     },
   ],
   {
-    basename: "/",
+    basename: BASENAME,
   },
 );
 

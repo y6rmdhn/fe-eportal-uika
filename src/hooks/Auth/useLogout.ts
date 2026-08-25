@@ -21,7 +21,9 @@ export const useLogout = () => {
     },
     onSettled: () => {
       session.clearSession();
-      window.location.href = "/eportal/login";
+      // Ikuti base build (lokal "/", produksi "/eportal/") — jangan di-hardcode,
+      // karena hardcode membuat logout gagal saat dijalankan lokal.
+      window.location.href = `${import.meta.env.BASE_URL}login`;
     },
   });
 
