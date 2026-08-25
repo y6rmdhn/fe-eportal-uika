@@ -162,10 +162,10 @@ export default function Register() {
       .getPublicUnits()
       .then((res) => {
         const allUnits = res.data?.data ?? [];
-        // Filter hanya prodi: code mengandung underscore, misal FT_TI, FH_IH, dst.
-        // Fakultas/biro/unit lain (Univ, FTS, FH, BAAK, dst) tidak punya underscore.
-        const prodiOnly = allUnits.filter((u: any) => u.code?.includes("_"));
-        setUnits(prodiOnly);
+        // ← hapus filter ini
+        // const prodiOnly = allUnits.filter((u: any) => u.code?.includes("_"));
+        // setUnits(prodiOnly);
+        setUnits(allUnits); // ← pakai semua unit
       })
       .catch(() => {});
 
