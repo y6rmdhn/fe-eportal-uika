@@ -66,7 +66,7 @@ const auth = {
     return network.get("/validate/npm", { params: { npm } });
   },
   getPublicUnits() {
-    return network.get("/admins/units", { params: { per_page: 1000 } });
+    return network.get("/public/units", { params: { per_page: 1000 } });
   },
   getPublicJabatans() {
     return network.get("/public/jabatans");
