@@ -15,6 +15,7 @@ import {
   Download,
   ShieldCheck,
   ShieldOff,
+  AlertCircle,
 } from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
@@ -37,7 +38,8 @@ const UserManagement = () => {
   } | null>(null);
 
   const [currentUnitFilter, setCurrentUnitFilter] = useState<string>("");
-  const [currentVerifiedFilter, setCurrentVerifiedFilter] = useState<string>("");
+  const [currentVerifiedFilter, setCurrentVerifiedFilter] =
+    useState<string>("");
   const [verifyAction, setVerifyAction] = useState<UserData | null>(null);
 
   const handleChanngeAction = (open: boolean) => {
@@ -59,10 +61,28 @@ const UserManagement = () => {
     queryKey: ["all-units-filter"],
     queryFn: async () => {
       const res = await admin.getUnits({ per_page: 1000 });
-      return res.data?.data as { id: number; code: string; nama_unit: string }[];
+      return res.data?.data as {
+        id: number;
+        code: string;
+        nama_unit: string;
+      }[];
     },
   });
   const unitOptions = unitsRes || [];
+
+  // ← Query count user belum verifikasi
+  const { data: unverifiedCount } = useQuery({
+    queryKey: ["unverified-count"],
+    queryFn: async () => {
+      const res = await admin.getAllUserManagement({
+        currentLimit: 1,
+        currentPage: 1,
+        currentSearch: "",
+        currentVerifiedFilter: "0",
+      });
+      return res.data?.meta?.total || 0;
+    },
+  });
 
   const {
     currentLimit,
@@ -118,7 +138,6 @@ const UserManagement = () => {
             {currentLimit * (currentPage - 1) + index + 1}
           </span>,
 
-          // Email + badge belum verifikasi
           <div key={`email-${index}`} className="flex flex-col gap-1">
             <p className="font-bold text-[14px] text-gray-900 max-w-[200px] break-all">
               {user.email}
@@ -130,7 +149,6 @@ const UserManagement = () => {
             )}
           </div>,
 
-          // NIDN / NPM / NIK
           <span
             key={`id-${index}`}
             className="inline-flex px-2.5 py-1 bg-gray-50 text-gray-600 font-mono text-xs rounded-md border border-gray-100"
@@ -138,7 +156,6 @@ const UserManagement = () => {
             {user.nidn ?? user.npm ?? user.nik ?? "-"}
           </span>,
 
-          // Unit
           <div key={`unit-${index}`} className="flex flex-col max-w-[200px]">
             <span className="font-bold text-gray-800 text-[13px]">
               {user.unit?.nama_unit || "-"}
@@ -150,7 +167,6 @@ const UserManagement = () => {
             )}
           </div>,
 
-          // Role / Jabatan
           <div key={`role-${index}`} className="flex flex-wrap gap-1">
             {Array.isArray(user.roles) && user.roles.length > 0 ? (
               user.roles.map((r, i) => (
@@ -168,12 +184,13 @@ const UserManagement = () => {
             )}
           </div>,
 
-          // Tanggal
-          <span key={`date-${index}`} className="text-sm text-gray-600 font-medium">
+          <span
+            key={`date-${index}`}
+            className="text-sm text-gray-600 font-medium"
+          >
             {user.created_at?.split("T")[0]}
           </span>,
 
-          // Aksi
           <div key={`action-${index}`} className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -186,9 +203,9 @@ const UserManagement = () => {
               title={user.isverified ? "Nonaktifkan" : "Verifikasi Akun"}
               onClick={() => {
                 if (!user.isverified) {
-                  setVerifyAction(user); // ← buka popup verifikasi
+                  setVerifyAction(user);
                 } else {
-                  handleToggleActive(user.id); // ← langsung toggle kalau sudah aktif
+                  handleToggleActive(user.id);
                 }
               }}
             >
@@ -210,7 +227,9 @@ const UserManagement = () => {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-amber-600 hover:bg-amber-50 rounded-lg"
-              onClick={() => setSelectedAction({ data: user, type: "reset-password" })}
+              onClick={() =>
+                setSelectedAction({ data: user, type: "reset-password" })
+              }
             >
               <KeyRound size={16} strokeWidth={2.5} />
             </Button>
@@ -241,9 +260,24 @@ const UserManagement = () => {
         <div className="flex flex-col gap-6 bg-white p-6 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-                Management User
-              </h1>
+              {/* ← Badge counter */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                  Management User
+                </h1>
+                {unverifiedCount > 0 && (
+                  <button
+                    onClick={() => {
+                      setCurrentVerifiedFilter("0");
+                      handleChangePage(1);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors"
+                  >
+                    <AlertCircle size={12} />
+                    {unverifiedCount} Menunggu Verifikasi
+                  </button>
+                )}
+              </div>
               <p className="text-sm font-medium text-gray-500 mt-1">
                 Kelola data pengguna, hak akses, dan role.
               </p>
@@ -311,7 +345,6 @@ const UserManagement = () => {
                 placeholder="Filter Unit"
                 className="w-full sm:w-[220px]"
               />
-              {/* ← Filter Status Verifikasi */}
               <SearchableSelect
                 options={[
                   { value: "", label: "Semua Status" },
@@ -363,15 +396,19 @@ const UserManagement = () => {
             handleChangeAction={handleChanngeAction}
           />
           <DialogResetPassword
-            open={selectedAction !== null && selectedAction.type === "reset-password"}
+            open={
+              selectedAction !== null &&
+              selectedAction.type === "reset-password"
+            }
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
           />
-          {/* ← Dialog Verifikasi User */}
           <DialogVerifyUser
             open={verifyAction !== null}
             currentData={verifyAction ?? undefined}
-            handleChangeAction={(open) => { if (!open) setVerifyAction(null); }}
+            handleChangeAction={(open) => {
+              if (!open) setVerifyAction(null);
+            }}
             refetch={refetch}
           />
         </div>
