@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import auth from "@/services/api/auth.ts";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -217,7 +216,7 @@ export default function Dashboard() {
   };
 
   return (
-    <section className="flex items-center justify-center p-4 sm:p-6 h-screen w-screen bg-[#f8faf9] relative overflow-hidden">
+    <section className="flex items-center justify-center p-4 sm:p-6 min-h-screen w-screen bg-[#f8faf9] relative">
       {/* ── Decorative blobs ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -left-32 w-[550px] h-[550px] bg-emerald-100 rounded-full blur-[130px] opacity-60" />
@@ -226,8 +225,8 @@ export default function Dashboard() {
       </div>
 
       {/* ── Main Container ── */}
-      <div className="relative z-10 w-full max-w-6xl h-full max-h-[760px] flex flex-col">
-        <div className="w-full h-full flex flex-col bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.10)] border border-white overflow-hidden">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col my-6">
+        <div className="w-full flex flex-col bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.10)] border border-white">
           {/* ═══ HEADER ═══════════════════════════════════════════════════════ */}
           <div className="px-6 sm:px-8 py-4 flex justify-between items-center border-b border-gray-100/80 bg-white/60 backdrop-blur-sm shrink-0">
             {/* Logo + title */}
@@ -410,9 +409,8 @@ export default function Dashboard() {
           </div>
 
           {/* ═══ GRID MODUL ════════════════════════════════════════════════════ */}
-          <div className="flex-1 overflow-hidden px-6 sm:px-8 pb-8">
-            <ScrollArea className="h-full w-full">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-1 pb-6">
+          <div className="px-6 sm:px-8 pb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-1 pb-6">
                 {/* ── Loading Skeleton ── */}
                 {isLoading &&
                   Array.from({ length: 8 }).map((_, idx) => (
@@ -517,8 +515,7 @@ export default function Dashboard() {
                       </button>
                     );
                   })}
-              </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* ═══ FOOTER ════════════════════════════════════════════════════════ */}
