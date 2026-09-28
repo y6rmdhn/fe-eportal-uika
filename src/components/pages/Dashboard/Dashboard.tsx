@@ -18,6 +18,8 @@ import {
   Shield,
   Globe,
   ExternalLink,
+  Smartphone,
+  Download,
 } from "lucide-react";
 import { useLogout } from "@/hooks/Auth/useLogout.ts";
 import toast from "react-hot-toast";
@@ -49,6 +51,26 @@ const MODULE_GRADIENTS = [
   { from: "#d97706", to: "#b45309", shadow: "rgba(217,119,6,0.25)" },
   { from: "#0891b2", to: "#0e7490", shadow: "rgba(8,145,178,0.25)" },
   { from: "#65a30d", to: "#4d7c0f", shadow: "rgba(101,163,13,0.25)" },
+];
+
+/** Link folder Google Drive berisi APK terbaru, per aplikasi */
+const MOBILE_APPS = [
+  {
+    name: "UCL Mobile",
+    description: "Download APK terbaru",
+    from: "#059669",
+    to: "#047857",
+    shadow: "rgba(5,150,105,0.25)",
+    url: "https://drive.google.com/drive/folders/1bFeS2U0QiCcbr0Puo78Zs0Mn1ext222U?usp=drive_link",
+  },
+  {
+    name: "Short Course",
+    description: "Download APK terbaru",
+    from: "#0284c7",
+    to: "#0369a1",
+    shadow: "rgba(2,132,199,0.25)",
+    url: "https://drive.google.com/drive/folders/10sdATG0xGNvrRFHGeQmVCOEbqmBPsMh5?usp=drive_link",
+  },
 ];
 
 /** Buat singkatan dari nama modul (maks 2 kata) */
@@ -515,6 +537,52 @@ export default function Dashboard() {
                       </button>
                     );
                   })}
+            </div>
+          </div>
+
+          {/* ═══ DOWNLOAD APLIKASI MOBILE ══════════════════════════════════════ */}
+          <div className="px-6 sm:px-8 pb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Smartphone size={16} className="text-emerald-600" />
+              <h3 className="text-sm font-extrabold text-gray-900 tracking-tight">
+                Download Aplikasi Mobile
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {MOBILE_APPS.map((app) => (
+                <a
+                  key={app.name}
+                  href={app.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative flex items-center gap-4 p-5 bg-white rounded-3xl border border-gray-100/80
+                    transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-10px_var(--mod-shadow)]
+                    hover:border-transparent overflow-hidden"
+                  style={{ "--mod-shadow": app.shadow } as React.CSSProperties}
+                >
+                  <div
+                    className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110"
+                    style={{
+                      background: `linear-gradient(135deg, ${app.from}, ${app.to})`,
+                      boxShadow: `0 8px 24px -6px ${app.shadow}`,
+                    }}
+                  >
+                    <Smartphone size={22} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-extrabold text-sm text-gray-900 truncate">
+                      {app.name}
+                    </h5>
+                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                      {app.description}
+                    </p>
+                  </div>
+                  <Download
+                    size={16}
+                    className="text-gray-300 group-hover:text-emerald-600 transition-colors shrink-0"
+                  />
+                </a>
+              ))}
             </div>
           </div>
 
