@@ -56,16 +56,16 @@ const MODULE_GRADIENTS = [
 /** Link folder Google Drive berisi APK terbaru, per aplikasi */
 const MOBILE_APPS = [
   {
-    name: "UCL Mobile",
-    description: "Download APK terbaru",
+    name: "UCL Mobile Android",
+    description: "Download APK Android terbaru",
     from: "#059669",
     to: "#047857",
     shadow: "rgba(5,150,105,0.25)",
     url: "https://drive.google.com/drive/folders/1bFeS2U0QiCcbr0Puo78Zs0Mn1ext222U?usp=drive_link",
   },
   {
-    name: "Short Course",
-    description: "Download APK terbaru",
+    name: "Short Course Android",
+    description: "Download APK Android terbaru",
     from: "#0284c7",
     to: "#0369a1",
     shadow: "rgba(2,132,199,0.25)",
