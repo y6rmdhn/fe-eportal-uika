@@ -71,6 +71,9 @@ const auth = {
   getPublicJabatans() {
     return network.get("/public/jabatans");
   },
+  getAboutUs() {
+    return network.get("/about-us");
+  },
 };
 
 export default auth;

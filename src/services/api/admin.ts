@@ -255,6 +255,33 @@ const admin = {
     return network.post("/admins/role-permissions/unassign", payload);
   },
 
+  // ── About Us ────────────────────────────────────────────────────────────────
+  getAboutUsSettings() {
+    return network.get("/admins/about-us");
+  },
+  updateAboutUsSettings(payload: FormData) {
+    return network.post("/admins/about-us", payload);
+  },
+  getAboutUsContributors(params: {
+    all?: number;
+    page?: number;
+    per_page?: number;
+    search?: string;
+    type?: string;
+    app_module_id?: number;
+  }) {
+    return network.get("/admins/about-us/contributors", { params });
+  },
+  createAboutUsContributor(payload: FormData) {
+    return network.post("/admins/about-us/contributors", payload);
+  },
+  updateAboutUsContributor(id: number, payload: FormData) {
+    return network.post(`/admins/about-us/contributors/${id}`, payload);
+  },
+  deleteAboutUsContributor(id: number) {
+    return network.delete(`/admins/about-us/contributors/${id}`);
+  },
+
   // ── SSO Integration Templates ──────────────────────────────────────────────
   getSsoTemplates() {
     return network.get("/admins/sso-keys");

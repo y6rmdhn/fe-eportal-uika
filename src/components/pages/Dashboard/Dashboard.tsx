@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Smartphone,
   Download,
+  Info,
 } from "lucide-react";
 import { useLogout } from "@/hooks/Auth/useLogout.ts";
 import toast from "react-hot-toast";
@@ -343,6 +344,12 @@ export default function Dashboard() {
                   className="gap-2 cursor-pointer rounded-xl mx-0.5 font-medium text-gray-700"
                 >
                   <UserCircle size={15} /> Profile Saya
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/about-us")}
+                  className="gap-2 cursor-pointer rounded-xl mx-0.5 font-medium text-gray-700"
+                >
+                  <Info size={15} /> Tentang Kami
                 </DropdownMenuItem>
                 {isAdmin && (
                   <>

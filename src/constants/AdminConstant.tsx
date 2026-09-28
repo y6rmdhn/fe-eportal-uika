@@ -8,6 +8,7 @@ import {
   Fingerprint,
   Code2,
   Building2,
+  Info,
 } from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
@@ -64,6 +65,12 @@ export const SIDEBAR_ADMIN = [
     label: "SSO Integration",
     href: "/admin/sso-keys",
     icon: <Code2 size={20} />,
+  },
+  {
+    key: "about-us",
+    label: "About Us",
+    href: "/admin/about-us",
+    icon: <Info size={20} />,
   },
 ];
 

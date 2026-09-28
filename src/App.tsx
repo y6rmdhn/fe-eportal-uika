@@ -39,6 +39,11 @@ const router = createBrowserRouter(
       lazy: page(() => import("./components/pages/Profile")),
     },
     {
+      path: "/about-us",
+      loader: mainLoader,
+      lazy: page(() => import("./components/pages/AboutUs")),
+    },
+    {
       path: "/login",
       loader: authLoader,
       element: <Login />,
@@ -99,6 +104,11 @@ const router = createBrowserRouter(
       path: "/admin/units",
       loader: adminLoader,
       lazy: page(() => import("./components/pages/Admin/Units")),
+    },
+    {
+      path: "/admin/about-us",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/AboutUs")),
     },
   ],
   {
