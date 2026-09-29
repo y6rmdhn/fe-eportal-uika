@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,6 +9,12 @@ import {
 } from "lucide-react";
 import auth from "@/services/api/auth.ts";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
@@ -32,8 +38,18 @@ interface AboutUsResponse {
   contributors: Contributor[];
 }
 
-const ContributorCard = ({ c }: { c: Contributor }) => (
-  <div className="flex flex-col items-center text-center gap-3 p-5 bg-white rounded-2xl border border-gray-100/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+const ContributorCard = ({
+  c,
+  onClick,
+}: {
+  c: Contributor;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex flex-col items-center text-center gap-3 p-5 bg-white rounded-2xl border border-gray-100/80 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-200 transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+  >
     <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
       {c.photo ? (
         <img
@@ -67,13 +83,19 @@ const ContributorCard = ({ c }: { c: Contributor }) => (
         </p>
       )}
     </div>
-  </div>
+  </button>
 );
 
-const ContributorGrid = ({ items }: { items: Contributor[] }) => (
+const ContributorGrid = ({
+  items,
+  onSelect,
+}: {
+  items: Contributor[];
+  onSelect: (c: Contributor) => void;
+}) => (
   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
     {items.map((c) => (
-      <ContributorCard key={c.id} c={c} />
+      <ContributorCard key={c.id} c={c} onClick={() => onSelect(c)} />
     ))}
   </div>
 );
@@ -91,6 +113,7 @@ export default function AboutUsPage() {
   });
 
   const settings = data?.settings;
+  const [selected, setSelected] = useState<Contributor | null>(null);
 
   const dosen = useMemo(
     () => (data?.contributors ?? []).filter((c) => c.type === "dosen"),
@@ -181,7 +204,7 @@ export default function AboutUsPage() {
                       {dosen.length}
                     </span>
                   </div>
-                  <ContributorGrid items={dosen} />
+                  <ContributorGrid items={dosen} onSelect={setSelected} />
                 </div>
               )}
 
@@ -199,7 +222,7 @@ export default function AboutUsPage() {
                       {mahasiswa.length}
                     </span>
                   </div>
-                  <ContributorGrid items={mahasiswa} />
+                  <ContributorGrid items={mahasiswa} onSelect={setSelected} />
                 </div>
               )}
 
@@ -215,6 +238,92 @@ export default function AboutUsPage() {
           )}
         </div>
       </div>
+
+      {/* Detail Kontributor */}
+      <Dialog
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="sr-only">
+              Detail {selected?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selected && (
+            <div className="flex flex-col items-center text-center gap-3 pt-2">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                {selected.photo ? (
+                  <img
+                    src={selected.photo}
+                    alt={selected.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="font-extrabold text-emerald-700 text-3xl">
+                    {selected.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <p className="font-extrabold text-lg text-gray-900 leading-tight">
+                  {selected.name}
+                </p>
+                <span
+                  className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${
+                    selected.type === "dosen"
+                      ? "bg-blue-50 text-blue-700 border-blue-100"
+                      : "bg-emerald-50 text-emerald-700 border-emerald-100"
+                  }`}
+                >
+                  {selected.type === "dosen" ? "Dosen" : "Mahasiswa"}
+                </span>
+              </div>
+
+              <div className="w-full pt-3 mt-1 border-t border-gray-100 space-y-2.5 text-left">
+                {selected.angkatan && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400 font-medium">
+                      Angkatan
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {selected.angkatan}
+                    </span>
+                  </div>
+                )}
+                {selected.contribution && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400 font-medium">
+                      Kontribusi
+                    </span>
+                    <span className="font-bold text-emerald-600">
+                      {selected.contribution}
+                    </span>
+                  </div>
+                )}
+                {selected.app_module?.name && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400 font-medium">
+                      Aplikasi
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {selected.app_module.name}
+                    </span>
+                  </div>
+                )}
+                {!selected.angkatan &&
+                  !selected.contribution &&
+                  !selected.app_module?.name && (
+                    <p className="text-sm text-gray-400 text-center py-2">
+                      Belum ada detail tambahan untuk kontributor ini.
+                    </p>
+                  )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
