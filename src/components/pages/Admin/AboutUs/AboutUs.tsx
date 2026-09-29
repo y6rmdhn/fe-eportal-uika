@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,20 @@ import {
 } from "@/hooks/AboutUs/useAboutUs";
 import { useGetAppModules } from "@/hooks/AppModules/useAppModules";
 
+// Samakan dengan batas backend (`image|max:2048` KB) — dicek di sini juga
+// supaya foto kegedean ditolak dengan pesan jelas, bukan diblok WAF di
+// tengah jalan (WAF cuma lihat Content-Length mentah, pesannya nggak jelas).
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+
+function pickImageFile(file: File | null): File | null {
+  if (!file) return null;
+  if (file.size > MAX_IMAGE_SIZE) {
+    toast.error("Ukuran foto maksimal 2MB. Silakan kompres/perkecil dulu.");
+    return null;
+  }
+  return file;
+}
+
 const EMPTY_FORM: AboutUsContributorForm = {
   name: "",
   type: "mahasiswa",
@@ -71,7 +86,9 @@ const AboutUsContentEditor = ({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
-  const handleBannerChange = (file: File | null) => {
+  const handleBannerChange = (rawFile: File | null) => {
+    const file = pickImageFile(rawFile);
+    if (rawFile && !file) return;
     setBannerFile(file);
     setBannerPreview(file ? URL.createObjectURL(file) : null);
   };
@@ -468,7 +485,9 @@ const AboutUs = () => {
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
-                  const file = e.target.files?.[0] ?? null;
+                  const rawFile = e.target.files?.[0] ?? null;
+                  const file = pickImageFile(rawFile);
+                  if (rawFile && !file) return;
                   setForm({ ...form, photo: file });
                   setPhotoPreview(file ? URL.createObjectURL(file) : null);
                 }}
