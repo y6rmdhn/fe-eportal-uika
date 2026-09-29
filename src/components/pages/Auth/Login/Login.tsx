@@ -214,6 +214,14 @@ export default function Login() {
                   Daftar di sini
                 </Link>
               </p>
+              <p className="text-gray-400 text-xs mt-2">
+                <Link
+                  to="/about-us"
+                  className="hover:text-emerald-600 transition-colors font-semibold"
+                >
+                  Tentang Kami
+                </Link>
+              </p>
             </div>
           </div>
 

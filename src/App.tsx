@@ -39,8 +39,10 @@ const router = createBrowserRouter(
       lazy: page(() => import("./components/pages/Profile")),
     },
     {
+      // Publik — bisa diakses tanpa login (dari halaman Login juga), jadi
+      // tidak pakai mainLoader yang otomatis redirect ke /login kalau belum
+      // punya sesi.
       path: "/about-us",
-      loader: mainLoader,
       lazy: page(() => import("./components/pages/AboutUs")),
     },
     {

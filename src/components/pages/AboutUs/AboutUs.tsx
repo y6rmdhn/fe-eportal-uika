@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, GraduationCap, Users, Sparkles } from "lucide-react";
+import { ArrowLeft, Users, Sparkles } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
@@ -33,42 +33,51 @@ interface AboutUsResponse {
 }
 
 const ContributorCard = ({ c }: { c: Contributor }) => (
-    <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-2xl border border-gray-100/80 h-full">
-      <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-        {c.photo ? (
-          <img
-            src={c.photo}
-            alt={c.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span className="font-extrabold text-emerald-700 text-2xl">
-            {c.name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </div>
-      <div className="min-w-0">
-        <p className="font-extrabold text-sm text-gray-900 leading-tight">
-          {c.name}
-        </p>
-        {c.angkatan && (
-          <span className="text-[11px] font-semibold text-gray-400">
-            Angkatan {c.angkatan}
-          </span>
-        )}
-        {c.contribution && (
-          <p className="text-[11px] text-emerald-600 font-bold mt-1">
-            {c.contribution}
-          </p>
-        )}
-        {c.app_module?.name && (
-          <p className="text-[10px] text-gray-400 font-medium mt-0.5">
-            {c.app_module.name}
-          </p>
-        )}
-      </div>
+  <div className="relative flex flex-col items-center text-center gap-3 p-6 bg-white rounded-2xl border border-gray-100/80 h-full">
+    <span
+      className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border ${
+        c.type === "dosen"
+          ? "bg-blue-50 text-blue-700 border-blue-100"
+          : "bg-emerald-50 text-emerald-700 border-emerald-100"
+      }`}
+    >
+      {c.type === "dosen" ? "Dosen" : "Mahasiswa"}
+    </span>
+    <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center mt-2">
+      {c.photo ? (
+        <img
+          src={c.photo}
+          alt={c.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span className="font-extrabold text-emerald-700 text-2xl">
+          {c.name.charAt(0).toUpperCase()}
+        </span>
+      )}
     </div>
-  );
+    <div className="min-w-0">
+      <p className="font-extrabold text-sm text-gray-900 leading-tight">
+        {c.name}
+      </p>
+      {c.angkatan && (
+        <span className="text-[11px] font-semibold text-gray-400">
+          Angkatan {c.angkatan}
+        </span>
+      )}
+      {c.contribution && (
+        <p className="text-[11px] text-emerald-600 font-bold mt-1">
+          {c.contribution}
+        </p>
+      )}
+      {c.app_module?.name && (
+        <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+          {c.app_module.name}
+        </p>
+      )}
+    </div>
+  </div>
+);
 
 const ContributorCarousel = ({ items }: { items: Contributor[] }) => (
   <Swiper
@@ -104,15 +113,7 @@ export default function AboutUsPage() {
   });
 
   const settings = data?.settings;
-
-  const dosen = useMemo(
-    () => (data?.contributors ?? []).filter((c) => c.type === "dosen"),
-    [data],
-  );
-  const mahasiswa = useMemo(
-    () => (data?.contributors ?? []).filter((c) => c.type === "mahasiswa"),
-    [data],
-  );
+  const contributors = useMemo(() => data?.contributors ?? [], [data]);
 
   return (
     <section className="flex items-center justify-center p-4 sm:p-6 min-h-screen w-screen bg-[#f8faf9] relative">
@@ -180,43 +181,23 @@ export default function AboutUsPage() {
                 )}
               </div>
 
-              {/* Dosen */}
-              {dosen.length > 0 && (
-                <div className="px-6 sm:px-8 pb-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-1.5 bg-blue-50 rounded-lg">
-                      <GraduationCap size={16} className="text-blue-600" />
-                    </div>
-                    <h3 className="text-sm font-extrabold text-gray-900">
-                      Dosen
-                    </h3>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-full border border-blue-100">
-                      {dosen.length}
-                    </span>
-                  </div>
-                  <ContributorCarousel items={dosen} />
-                </div>
-              )}
-
-              {/* Mahasiswa */}
-              {mahasiswa.length > 0 && (
+              {/* Kontributor */}
+              {contributors.length > 0 ? (
                 <div className="px-6 sm:px-8 pb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="p-1.5 bg-emerald-50 rounded-lg">
                       <Users size={16} className="text-emerald-600" />
                     </div>
                     <h3 className="text-sm font-extrabold text-gray-900">
-                      Mahasiswa
+                      Kontributor
                     </h3>
                     <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-100">
-                      {mahasiswa.length}
+                      {contributors.length}
                     </span>
                   </div>
-                  <ContributorCarousel items={mahasiswa} />
+                  <ContributorCarousel items={contributors} />
                 </div>
-              )}
-
-              {dosen.length === 0 && mahasiswa.length === 0 && (
+              ) : (
                 <div className="flex flex-col items-center justify-center py-16 px-8">
                   <Users size={36} className="text-gray-200 mb-3" />
                   <p className="font-bold text-gray-500 text-sm">
