@@ -44,6 +44,10 @@ const toFormData = (payload: Record<string, unknown>) => {
       // Dilewati (bukan dikirim "null") — penting untuk field file seperti
       // photo/banner_photo, karena string "null" akan gagal validasi `image`.
       return;
+    } else if (typeof value === "boolean") {
+      // Laravel's `boolean` rule cuma terima true/false/0/1/"0"/"1" — bukan
+      // string "true"/"false" yang dihasilkan String(value).
+      formData.append(key, value ? "1" : "0");
     } else {
       // String kosong sengaja tetap dikirim: Laravel mengonversinya jadi
       // null (ConvertEmptyStringsToNull), sehingga field nullable seperti
