@@ -112,6 +112,11 @@ const router = createBrowserRouter(
       loader: adminLoader,
       lazy: page(() => import("./components/pages/Admin/AboutUs")),
     },
+    {
+      path: "/admin/login-slides",
+      loader: adminLoader,
+      lazy: page(() => import("./components/pages/Admin/LoginSlides")),
+    },
   ],
   {
     basename: BASENAME,

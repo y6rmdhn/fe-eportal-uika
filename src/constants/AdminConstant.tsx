@@ -9,6 +9,7 @@ import {
   Code2,
   Building2,
   Info,
+  Images,
 } from "lucide-react";
 
 export const SIDEBAR_ADMIN = [
@@ -71,6 +72,12 @@ export const SIDEBAR_ADMIN = [
     label: "About Us",
     href: "/admin/about-us",
     icon: <Info size={20} />,
+  },
+  {
+    key: "login-slides",
+    label: "Info Terkini (Login)",
+    href: "/admin/login-slides",
+    icon: <Images size={20} />,
   },
 ];
 

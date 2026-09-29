@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/field.tsx";
 import { Controller } from "react-hook-form";
 import { LifeBuoy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import auth from "@/services/api/auth.ts";
 
 const HELPDESK_URL = "https://helpdesk.uika-bogor.ac.id/";
 
@@ -31,8 +33,15 @@ const LOGO = `${BASE_URL}img/LOGO_UIKA_Terbaru2 (2).png`;
 // const GOOGLE_LOGO = "https://tias.ti.ft.uika-bogor.ac.id/img/google.png";
 // const API_URL = import.meta.env.VITE_PUBLIC_API_URL;
 
-// DATA SLIDER
-const slides = [
+interface HeroSlideData {
+  image: string;
+  title: string;
+  body: string | null;
+}
+
+// Dipakai kalau admin belum mengisi slide apa pun lewat /admin/login-slides,
+// supaya panel kanan tidak pernah kosong.
+const FALLBACK_SLIDES: HeroSlideData[] = [
   {
     image: `${BASE_URL}img/ilustrasi-beasiswa-di-universitas-ibn-khaldun-uika-bogor-wii-tpsg.jpg`,
     title: "Pengumuman Pembayaran Kuliah",
@@ -47,6 +56,20 @@ const slides = [
 
 export default function Login() {
   const { handleSubmit, handleLogin, isPendingLogin, control } = useLogin();
+
+  const { data: loginSlidesData } = useQuery({
+    queryKey: ["login-slides-public"],
+    queryFn: async () => {
+      const res = await auth.getLoginSlides();
+      return res.data?.data as HeroSlideData[];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const slides =
+    loginSlidesData && loginSlidesData.length > 0
+      ? loginSlidesData
+      : FALLBACK_SLIDES;
 
   return (
     <AuthLayout title="E-Portal UIKA — Sign In">
@@ -229,7 +252,7 @@ export default function Login() {
           </div>
 
           {/* ── RIGHT PANEL (Swiper Slider) ── */}
-          <HeroSlider />
+          <HeroSlider slides={slides} />
         </div>
 
         {/* ── FLOATING HELPDESK BUTTON ── */}
@@ -250,7 +273,7 @@ export default function Login() {
 }
 
 // ── Komponen Hero Slider dengan Swiper ──
-function HeroSlider() {
+function HeroSlider({ slides }: { slides: HeroSlideData[] }) {
   return (
     <div className="hidden lg:flex lg:w-[52%] relative bg-emerald-950 items-end overflow-hidden">
       <Swiper

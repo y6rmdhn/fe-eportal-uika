@@ -282,6 +282,20 @@ const admin = {
     return network.delete(`/admins/about-us/contributors/${id}`);
   },
 
+  // ── Login Slides (Info Terkini di halaman login) ──────────────────────────────
+  getLoginSlides() {
+    return network.get("/admins/login-slides");
+  },
+  createLoginSlide(payload: FormData) {
+    return network.post("/admins/login-slides", payload);
+  },
+  updateLoginSlide(id: number, payload: FormData) {
+    return network.post(`/admins/login-slides/${id}`, payload);
+  },
+  deleteLoginSlide(id: number) {
+    return network.delete(`/admins/login-slides/${id}`);
+  },
+
   // ── SSO Integration Templates ──────────────────────────────────────────────
   getSsoTemplates() {
     return network.get("/admins/sso-keys");

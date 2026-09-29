@@ -74,6 +74,9 @@ const auth = {
   getAboutUs() {
     return network.get("/about-us");
   },
+  getLoginSlides() {
+    return network.get("/login-slides");
+  },
 };
 
 export default auth;

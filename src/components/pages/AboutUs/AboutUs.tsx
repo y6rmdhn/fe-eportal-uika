@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Sparkles } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import {
+  ArrowLeft,
+  GraduationCap,
+  Users,
+  Sparkles,
+} from "lucide-react";
 import auth from "@/services/api/auth.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,17 +33,8 @@ interface AboutUsResponse {
 }
 
 const ContributorCard = ({ c }: { c: Contributor }) => (
-  <div className="relative flex flex-col items-center text-center gap-3 p-6 bg-white rounded-2xl border border-gray-100/80 h-full">
-    <span
-      className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border ${
-        c.type === "dosen"
-          ? "bg-blue-50 text-blue-700 border-blue-100"
-          : "bg-emerald-50 text-emerald-700 border-emerald-100"
-      }`}
-    >
-      {c.type === "dosen" ? "Dosen" : "Mahasiswa"}
-    </span>
-    <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center mt-2">
+  <div className="flex flex-col items-center text-center gap-3 p-5 bg-white rounded-2xl border border-gray-100/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+    <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
       {c.photo ? (
         <img
           src={c.photo}
@@ -51,7 +42,7 @@ const ContributorCard = ({ c }: { c: Contributor }) => (
           className="w-full h-full object-cover"
         />
       ) : (
-        <span className="font-extrabold text-emerald-700 text-2xl">
+        <span className="font-extrabold text-emerald-700 text-xl">
           {c.name.charAt(0).toUpperCase()}
         </span>
       )}
@@ -79,25 +70,12 @@ const ContributorCard = ({ c }: { c: Contributor }) => (
   </div>
 );
 
-const ContributorCarousel = ({ items }: { items: Contributor[] }) => (
-  <Swiper
-    modules={[Navigation, Pagination]}
-    navigation
-    pagination={{ clickable: true }}
-    spaceBetween={16}
-    slidesPerView={2}
-    breakpoints={{
-      640: { slidesPerView: 3 },
-      1024: { slidesPerView: 4 },
-    }}
-    className="!pb-10 about-us-swiper"
-  >
+const ContributorGrid = ({ items }: { items: Contributor[] }) => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
     {items.map((c) => (
-      <SwiperSlide key={c.id} className="h-auto">
-        <ContributorCard c={c} />
-      </SwiperSlide>
+      <ContributorCard key={c.id} c={c} />
     ))}
-  </Swiper>
+  </div>
 );
 
 export default function AboutUsPage() {
@@ -113,7 +91,15 @@ export default function AboutUsPage() {
   });
 
   const settings = data?.settings;
-  const contributors = useMemo(() => data?.contributors ?? [], [data]);
+
+  const dosen = useMemo(
+    () => (data?.contributors ?? []).filter((c) => c.type === "dosen"),
+    [data],
+  );
+  const mahasiswa = useMemo(
+    () => (data?.contributors ?? []).filter((c) => c.type === "mahasiswa"),
+    [data],
+  );
 
   return (
     <section className="flex items-center justify-center p-4 sm:p-6 min-h-screen w-screen bg-[#f8faf9] relative">
@@ -125,7 +111,7 @@ export default function AboutUsPage() {
       <div className="relative z-10 w-full max-w-5xl flex flex-col my-6">
         <div className="w-full flex flex-col bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_80px_-12px_rgba(0,0,0,0.10)] border border-white overflow-hidden">
           {/* Header */}
-          <div className="px-6 sm:px-8 py-4 flex items-center gap-3.5 border-b border-gray-100/80 bg-white/60 backdrop-blur-sm">
+          <div className="px-6 sm:px-8 py-4 flex items-center gap-3.5 border-b border-gray-100/80 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
             <button
               onClick={() => navigate("/")}
               className="p-2 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition-colors"
@@ -181,23 +167,43 @@ export default function AboutUsPage() {
                 )}
               </div>
 
-              {/* Kontributor */}
-              {contributors.length > 0 ? (
+              {/* Dosen */}
+              {dosen.length > 0 && (
+                <div className="px-6 sm:px-8 pb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-1.5 bg-blue-50 rounded-lg">
+                      <GraduationCap size={16} className="text-blue-600" />
+                    </div>
+                    <h3 className="text-sm font-extrabold text-gray-900">
+                      Dosen
+                    </h3>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-full border border-blue-100">
+                      {dosen.length}
+                    </span>
+                  </div>
+                  <ContributorGrid items={dosen} />
+                </div>
+              )}
+
+              {/* Mahasiswa */}
+              {mahasiswa.length > 0 && (
                 <div className="px-6 sm:px-8 pb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="p-1.5 bg-emerald-50 rounded-lg">
                       <Users size={16} className="text-emerald-600" />
                     </div>
                     <h3 className="text-sm font-extrabold text-gray-900">
-                      Kontributor
+                      Mahasiswa
                     </h3>
                     <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-100">
-                      {contributors.length}
+                      {mahasiswa.length}
                     </span>
                   </div>
-                  <ContributorCarousel items={contributors} />
+                  <ContributorGrid items={mahasiswa} />
                 </div>
-              ) : (
+              )}
+
+              {dosen.length === 0 && mahasiswa.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 px-8">
                   <Users size={36} className="text-gray-200 mb-3" />
                   <p className="font-bold text-gray-500 text-sm">
@@ -209,41 +215,6 @@ export default function AboutUsPage() {
           )}
         </div>
       </div>
-
-      {/* ── CUSTOM CSS UNTUK CAROUSEL KONTRIBUTOR ── */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          .about-us-swiper .swiper-button-next,
-          .about-us-swiper .swiper-button-prev {
-            width: 32px;
-            height: 32px;
-            background: #ffffff;
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            border-radius: 9999px;
-            box-shadow: 0 4px 14px -2px rgba(0,0,0,0.08);
-            color: #059669;
-          }
-          .about-us-swiper .swiper-button-next::after,
-          .about-us-swiper .swiper-button-prev::after {
-            font-size: 13px;
-            font-weight: 900;
-          }
-          .about-us-swiper .swiper-button-disabled {
-            opacity: 0.35;
-          }
-          .about-us-swiper .swiper-pagination-bullet {
-            background: rgba(16, 185, 129, 0.25);
-            opacity: 1;
-          }
-          .about-us-swiper .swiper-pagination-bullet-active {
-            background: #059669;
-            width: 20px;
-            border-radius: 9999px;
-          }
-        `,
-        }}
-      />
     </section>
   );
 }
