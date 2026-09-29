@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -486,15 +487,29 @@ const AboutUs = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
+              <div
+                className={cn(
+                  "space-y-1.5",
+                  form.type === "dosen" && "col-span-2",
+                )}
+              >
                 <label className="text-sm font-bold text-gray-700">
                   Tipe *
                 </label>
                 <Select
                   value={form.type}
-                  onValueChange={(v) =>
-                    setForm({ ...form, type: v as "dosen" | "mahasiswa" })
-                  }
+                  onValueChange={(v) => {
+                    const type = v as "dosen" | "mahasiswa";
+                    setForm({
+                      ...form,
+                      type,
+                      // Angkatan & aplikasi cuma relevan untuk mahasiswa —
+                      // dosen tidak punya angkatan/keterikatan ke satu aplikasi.
+                      angkatan: type === "dosen" ? "" : form.angkatan,
+                      app_module_id:
+                        type === "dosen" ? "" : form.app_module_id,
+                    });
+                  }}
                 >
                   <SelectTrigger className="rounded-xl">
                     <SelectValue />
@@ -505,19 +520,21 @@ const AboutUs = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-gray-700">
-                  Angkatan
-                </label>
-                <Input
-                  placeholder="e.g. 2021"
-                  value={form.angkatan}
-                  onChange={(e) =>
-                    setForm({ ...form, angkatan: e.target.value })
-                  }
-                  className="rounded-xl"
-                />
-              </div>
+              {form.type === "mahasiswa" && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">
+                    Angkatan
+                  </label>
+                  <Input
+                    placeholder="e.g. 2021"
+                    value={form.angkatan}
+                    onChange={(e) =>
+                      setForm({ ...form, angkatan: e.target.value })
+                    }
+                    className="rounded-xl"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -535,33 +552,40 @@ const AboutUs = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-gray-700">
-                  Aplikasi
-                </label>
-                <Select
-                  value={form.app_module_id || "none"}
-                  onValueChange={(v) =>
-                    setForm({
-                      ...form,
-                      app_module_id: v === "none" ? "" : v,
-                    })
-                  }
-                >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Pilih aplikasi" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="none">Tidak spesifik</SelectItem>
-                    {appModules.map((m: { id: number; name: string }) => (
-                      <SelectItem key={m.id} value={String(m.id)}>
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
+              {form.type === "mahasiswa" && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">
+                    Aplikasi
+                  </label>
+                  <Select
+                    value={form.app_module_id || "none"}
+                    onValueChange={(v) =>
+                      setForm({
+                        ...form,
+                        app_module_id: v === "none" ? "" : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Pilih aplikasi" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="none">Tidak spesifik</SelectItem>
+                      {appModules.map((m: { id: number; name: string }) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div
+                className={cn(
+                  "space-y-1.5",
+                  form.type === "dosen" && "col-span-2",
+                )}
+              >
                 <label className="text-sm font-bold text-gray-700">
                   Urutan
                 </label>
