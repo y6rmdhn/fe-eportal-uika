@@ -31,6 +31,7 @@ import {
   GraduationCap,
   ImagePlus,
   Save,
+  X,
 } from "lucide-react";
 import {
   useAboutUsSettings,
@@ -85,17 +86,32 @@ const AboutUsContentEditor = ({
   const [description, setDescription] = useState(settings.description ?? "");
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [removeBanner, setRemoveBanner] = useState(false);
 
   const handleBannerChange = (rawFile: File | null) => {
     const file = pickImageFile(rawFile);
     if (rawFile && !file) return;
     setBannerFile(file);
     setBannerPreview(file ? URL.createObjectURL(file) : null);
+    setRemoveBanner(false);
+  };
+
+  const handleRemoveBanner = () => {
+    setBannerFile(null);
+    setBannerPreview(null);
+    setRemoveBanner(true);
   };
 
   const handleSaveSettings = () => {
-    updateSettings({ title, description, banner_photo: bannerFile });
+    updateSettings({
+      title,
+      description,
+      banner_photo: bannerFile,
+      remove_banner_photo: removeBanner,
+    });
   };
+
+  const hasBanner = !removeBanner && (bannerPreview || settings.banner_photo);
 
   return (
     <div className="space-y-4">
@@ -125,25 +141,37 @@ const AboutUsContentEditor = ({
 
         <div className="space-y-1.5">
           <label className="text-sm font-bold text-gray-700">Banner</label>
-          <label
-            htmlFor="banner-upload"
-            className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl h-[212px] cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors overflow-hidden"
-          >
-            {bannerPreview || settings.banner_photo ? (
-              <img
-                src={bannerPreview ?? settings.banner_photo ?? ""}
-                alt="Banner"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <>
-                <ImagePlus className="text-gray-300" size={28} />
-                <span className="text-xs font-semibold text-gray-400">
-                  Unggah banner
-                </span>
-              </>
+          <div className="relative">
+            <label
+              htmlFor="banner-upload"
+              className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl h-[212px] cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors overflow-hidden"
+            >
+              {hasBanner ? (
+                <img
+                  src={bannerPreview ?? settings.banner_photo ?? ""}
+                  alt="Banner"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <ImagePlus className="text-gray-300" size={28} />
+                  <span className="text-xs font-semibold text-gray-400">
+                    Unggah banner
+                  </span>
+                </>
+              )}
+            </label>
+            {hasBanner && (
+              <button
+                type="button"
+                onClick={handleRemoveBanner}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 hover:bg-rose-50 text-gray-500 hover:text-rose-600 border border-gray-200 flex items-center justify-center shadow-sm transition-colors"
+                title="Hapus banner"
+              >
+                <X size={14} />
+              </button>
             )}
-          </label>
+          </div>
           <input
             id="banner-upload"
             type="file"

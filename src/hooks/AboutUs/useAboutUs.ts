@@ -79,6 +79,7 @@ export const useUpdateAboutUsSettings = () => {
       title: string;
       description: string;
       banner_photo?: File | null;
+      remove_banner_photo?: boolean;
     }) => admin.updateAboutUsSettings(toFormData(payload)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["about-us-settings"] });
