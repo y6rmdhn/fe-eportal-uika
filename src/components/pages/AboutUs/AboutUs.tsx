@@ -2,6 +2,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, GraduationCap, Users, Sparkles } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import auth from "@/services/api/auth.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -27,6 +32,65 @@ interface AboutUsResponse {
   contributors: Contributor[];
 }
 
+const ContributorCard = ({ c }: { c: Contributor }) => (
+    <div className="flex flex-col items-center text-center gap-3 p-6 bg-white rounded-2xl border border-gray-100/80 h-full">
+      <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+        {c.photo ? (
+          <img
+            src={c.photo}
+            alt={c.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="font-extrabold text-emerald-700 text-2xl">
+            {c.name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="font-extrabold text-sm text-gray-900 leading-tight">
+          {c.name}
+        </p>
+        {c.angkatan && (
+          <span className="text-[11px] font-semibold text-gray-400">
+            Angkatan {c.angkatan}
+          </span>
+        )}
+        {c.contribution && (
+          <p className="text-[11px] text-emerald-600 font-bold mt-1">
+            {c.contribution}
+          </p>
+        )}
+        {c.app_module?.name && (
+          <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+            {c.app_module.name}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+const ContributorCarousel = ({ items }: { items: Contributor[] }) => (
+  <Swiper
+    modules={[Navigation, Pagination]}
+    navigation
+    pagination={{ clickable: true }}
+    spaceBetween={16}
+    slidesPerView={2}
+    breakpoints={{
+      640: { slidesPerView: 3 },
+      1024: { slidesPerView: 4 },
+    }}
+    className="!pb-10 about-us-swiper"
+  >
+    {items.map((c) => (
+      <SwiperSlide key={c.id} className="h-auto">
+        <ContributorCard c={c} />
+      </SwiperSlide>
+    ))}
+  </Swiper>
+);
+
 export default function AboutUsPage() {
   const navigate = useNavigate();
 
@@ -48,46 +112,6 @@ export default function AboutUsPage() {
   const mahasiswa = useMemo(
     () => (data?.contributors ?? []).filter((c) => c.type === "mahasiswa"),
     [data],
-  );
-
-  const ContributorCard = ({ c }: { c: Contributor }) => (
-    <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100/80 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-      <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-        {c.photo ? (
-          <img
-            src={c.photo}
-            alt={c.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span className="font-extrabold text-emerald-700">
-            {c.name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-extrabold text-sm text-gray-900 truncate">
-          {c.name}
-        </p>
-        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-          {c.angkatan && (
-            <span className="text-[11px] font-semibold text-gray-400">
-              Angkatan {c.angkatan}
-            </span>
-          )}
-        </div>
-        {c.contribution && (
-          <p className="text-[11px] text-emerald-600 font-bold mt-0.5 truncate">
-            {c.contribution}
-          </p>
-        )}
-        {c.app_module?.name && (
-          <p className="text-[10px] text-gray-400 font-medium truncate">
-            {c.app_module.name}
-          </p>
-        )}
-      </div>
-    </div>
   );
 
   return (
@@ -170,11 +194,7 @@ export default function AboutUsPage() {
                       {dosen.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {dosen.map((c) => (
-                      <ContributorCard key={c.id} c={c} />
-                    ))}
-                  </div>
+                  <ContributorCarousel items={dosen} />
                 </div>
               )}
 
@@ -192,11 +212,7 @@ export default function AboutUsPage() {
                       {mahasiswa.length}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {mahasiswa.map((c) => (
-                      <ContributorCard key={c.id} c={c} />
-                    ))}
-                  </div>
+                  <ContributorCarousel items={mahasiswa} />
                 </div>
               )}
 
@@ -212,6 +228,41 @@ export default function AboutUsPage() {
           )}
         </div>
       </div>
+
+      {/* ── CUSTOM CSS UNTUK CAROUSEL KONTRIBUTOR ── */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          .about-us-swiper .swiper-button-next,
+          .about-us-swiper .swiper-button-prev {
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 9999px;
+            box-shadow: 0 4px 14px -2px rgba(0,0,0,0.08);
+            color: #059669;
+          }
+          .about-us-swiper .swiper-button-next::after,
+          .about-us-swiper .swiper-button-prev::after {
+            font-size: 13px;
+            font-weight: 900;
+          }
+          .about-us-swiper .swiper-button-disabled {
+            opacity: 0.35;
+          }
+          .about-us-swiper .swiper-pagination-bullet {
+            background: rgba(16, 185, 129, 0.25);
+            opacity: 1;
+          }
+          .about-us-swiper .swiper-pagination-bullet-active {
+            background: #059669;
+            width: 20px;
+            border-radius: 9999px;
+          }
+        `,
+        }}
+      />
     </section>
   );
 }
