@@ -11,6 +11,9 @@ import {
   FieldLabel,
 } from "@/components/ui/field.tsx";
 import { Controller } from "react-hook-form";
+import { LifeBuoy } from "lucide-react";
+
+const HELPDESK_URL = "https://helpdesk.uika-bogor.ac.id/";
 
 // ── IMPORT SWIPER ──
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -228,6 +231,19 @@ export default function Login() {
           {/* ── RIGHT PANEL (Swiper Slider) ── */}
           <HeroSlider />
         </div>
+
+        {/* ── FLOATING HELPDESK BUTTON ── */}
+        <a
+          href={HELPDESK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-5 right-5 z-20 inline-flex items-center gap-2.5 bg-white hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 text-sm font-bold pl-2.5 pr-4 py-2.5 rounded-full shadow-[0_10px_30px_-8px_rgba(0,0,0,0.18)] border border-gray-100 hover:border-emerald-200 transition-all duration-300 hover:-translate-y-0.5"
+        >
+          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 shrink-0">
+            <LifeBuoy size={16} />
+          </span>
+          Butuh Bantuan?
+        </a>
       </section>
     </AuthLayout>
   );
