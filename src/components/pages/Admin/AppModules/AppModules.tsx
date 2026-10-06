@@ -1,5 +1,16 @@
 import { useState, useMemo } from "react";
-import { Plus, Edit2, Trash2, Key, Copy, Check, Eye, EyeOff, AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Key,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  ShieldCheck,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import DataTable from "@/common/DataTable";
@@ -26,6 +37,7 @@ import {
   useResetAppModuleSecret,
 } from "@/hooks/AppModules/useAppModules";
 import type { AppModule } from "@/types/general.type";
+import environment from "@/config/environment";
 
 const AppModules = () => {
   const { data, isLoading } = useGetAppModules();
@@ -46,10 +58,12 @@ const AppModules = () => {
   // Form Fields (Create)
   const [createName, setCreateName] = useState("");
   const [createUrl, setCreateUrl] = useState("");
+  const [createIcon, setCreateIcon] = useState<File | null>(null);
 
   // Form Fields (Update)
   const [updateName, setUpdateName] = useState("");
   const [updateUrl, setUpdateUrl] = useState("");
+  const [updateIcon, setUpdateIcon] = useState<File | null>(null);
 
   // Credentials Display Modal (upon create or reset secret)
   const [showSecretModal, setShowSecretModal] = useState(false);
@@ -63,7 +77,9 @@ const AppModules = () => {
   // Clipboard copy helper
   const handleCopy = (text: string, type: "id" | "secret") => {
     navigator.clipboard.writeText(text);
-    toast.success(`${type === "id" ? "Client ID" : "Client Secret"} berhasil disalin`);
+    toast.success(
+      `${type === "id" ? "Client ID" : "Client Secret"} berhasil disalin`,
+    );
     setCopiedType(type);
     setTimeout(() => setCopiedType(null), 2000);
   };
@@ -74,28 +90,34 @@ const AppModules = () => {
       toast.error("Nama modul dan URL wajib diisi");
       return;
     }
-    mutateCreate(
-      { name: createName.trim(), url: createUrl.trim() },
-      {
-        onSuccess: (res: any) => {
-          setCreateName("");
-          setCreateUrl("");
-          setCreateOpen(false);
 
-          // Show newly generated client credentials
-          const nestedSso = res?.data?.data?.sso_client;
-          if (nestedSso) {
-            setShowedSecret({
-              clientId: nestedSso.client_id,
-              clientSecret: nestedSso.plain_secret,
-              appName: res.data.data.name,
-            });
-            setSecretVisible(false);
-            setShowSecretModal(true);
-          }
-        },
-      }
-    );
+    const formData = new FormData();
+    formData.append("name", createName.trim());
+    formData.append("url", createUrl.trim());
+    if (createIcon) {
+      formData.append("icon", createIcon);
+    }
+
+    mutateCreate(formData, {
+      onSuccess: (res: any) => {
+        setCreateName("");
+        setCreateUrl("");
+        setCreateIcon(null);
+        setCreateOpen(false);
+
+        // Show newly generated client credentials
+        const nestedSso = res?.data?.data?.sso_client;
+        if (nestedSso) {
+          setShowedSecret({
+            clientId: nestedSso.client_id,
+            clientSecret: nestedSso.plain_secret,
+            appName: res.data.data.name,
+          });
+          setSecretVisible(false);
+          setShowSecretModal(true);
+        }
+      },
+    });
   };
 
   // Open Update Modal
@@ -103,6 +125,7 @@ const AppModules = () => {
     setUpdateData(mod);
     setUpdateName(mod.name);
     setUpdateUrl(mod.url);
+    setUpdateIcon(null); // Reset file input when opening modal
   };
 
   // Submit Update
@@ -112,16 +135,28 @@ const AppModules = () => {
       toast.error("Nama modul dan URL wajib diisi");
       return;
     }
+
+    const formData = new FormData();
+    formData.append("name", updateName.trim());
+    formData.append("url", updateUrl.trim());
+    if (updateIcon) {
+      formData.append("icon", updateIcon);
+    }
+
+    // Trik Laravel: Selipkan method PUT di dalam POST request
+    formData.append("_method", "PUT");
+
     mutateUpdate(
       {
         id: updateData.id,
-        payload: { name: updateName.trim(), url: updateUrl.trim() },
+        payload: formData,
       },
       {
         onSuccess: () => {
           setUpdateData(null);
+          setUpdateIcon(null);
         },
-      }
+      },
     );
   };
 
@@ -165,9 +200,20 @@ const AppModules = () => {
           <span key={`no-${index}`} className="font-medium text-gray-500">
             {index + 1}
           </span>,
-          <span key={`name-${index}`} className="font-semibold text-gray-800">
-            {mod.name}
-          </span>,
+          <div key={`name-${index}`} className="flex items-center gap-3">
+            {mod.icon_url ? (
+              <img
+                src={mod.icon_url}
+                alt={mod.name}
+                className="w-8 h-8 rounded-lg object-cover border border-gray-200"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
+                {mod.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="font-semibold text-gray-800">{mod.name}</span>
+          </div>,
           <a
             key={`url-${index}`}
             href={mod.url}
@@ -180,8 +226,12 @@ const AppModules = () => {
           <div key={`creds-${index}`} className="max-w-[280px]">
             {client ? (
               <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 p-1 px-2 rounded-md font-mono text-xs">
-                <span className="text-gray-400 select-none text-[10px]">ID:</span>
-                <span className="text-gray-600 truncate max-w-[180px]">{client.client_id}</span>
+                <span className="text-gray-400 select-none text-[10px]">
+                  ID:
+                </span>
+                <span className="text-gray-600 truncate max-w-[180px]">
+                  {client.client_id}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -229,7 +279,7 @@ const AppModules = () => {
           </div>,
         ];
       }),
-    [modules]
+    [modules],
   );
 
   return (
@@ -242,7 +292,8 @@ const AppModules = () => {
               App Modules & Credentials
             </h1>
             <p className="text-sm font-medium text-gray-500 mt-1">
-              Kelola modul sub-aplikasi terintegrasi beserta kunci akses SSO-nya.
+              Kelola modul sub-aplikasi terintegrasi beserta kunci akses
+              SSO-nya.
             </p>
           </div>
           <Button
@@ -293,6 +344,18 @@ const AppModules = () => {
                   onChange={(e) => setCreateUrl(e.target.value)}
                 />
               </div>
+              <div className="grid gap-1.5">
+                <Label>Icon Aplikasi (Opsional)</Label>
+                <Input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setCreateIcon(e.target.files[0]);
+                    }
+                  }}
+                />
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -310,7 +373,10 @@ const AppModules = () => {
         </Dialog>
 
         {/* Modal 2: Update AppModule */}
-        <Dialog open={!!updateData} onOpenChange={(o) => !o && setUpdateData(null)}>
+        <Dialog
+          open={!!updateData}
+          onOpenChange={(o) => !o && setUpdateData(null)}
+        >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Edit Aplikasi / Modul</DialogTitle>
@@ -330,9 +396,23 @@ const AppModules = () => {
                   onChange={(e) => setUpdateUrl(e.target.value)}
                 />
               </div>
+              <div className="grid gap-1.5">
+                <Label>Icon Aplikasi (Ganti jika perlu)</Label>
+                <Input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setUpdateIcon(e.target.files[0]);
+                    }
+                  }}
+                />
+              </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setUpdateData(null)}>Batal</Button>
+              <Button variant="outline" onClick={() => setUpdateData(null)}>
+                Batal
+              </Button>
               <Button
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 onClick={handleUpdateSubmit}
@@ -345,7 +425,10 @@ const AppModules = () => {
         </Dialog>
 
         {/* Modal 3: Delete AppModule */}
-        <Dialog open={!!deleteData} onOpenChange={(o) => !o && setDeleteData(null)}>
+        <Dialog
+          open={!!deleteData}
+          onOpenChange={(o) => !o && setDeleteData(null)}
+        >
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>
               <DialogTitle className="text-rose-600 flex items-center gap-2">
@@ -353,11 +436,16 @@ const AppModules = () => {
               </DialogTitle>
             </DialogHeader>
             <div className="py-2 text-sm text-gray-500 font-medium">
-              Apakah Anda yakin ingin menghapus aplikasi <strong className="text-gray-800">{deleteData?.name}</strong>?<br />
-              Tindakan ini akan menghapus modul aplikasi beserta seluruh data SSO Client credentials-nya secara permanen.
+              Apakah Anda yakin ingin menghapus aplikasi{" "}
+              <strong className="text-gray-800">{deleteData?.name}</strong>?
+              <br />
+              Tindakan ini akan menghapus modul aplikasi beserta seluruh data
+              SSO Client credentials-nya secara permanen.
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteData(null)}>Batal</Button>
+              <Button variant="outline" onClick={() => setDeleteData(null)}>
+                Batal
+              </Button>
               <Button
                 className="bg-rose-600 hover:bg-rose-700 text-white"
                 onClick={handleDeleteSubmit}
@@ -370,7 +458,10 @@ const AppModules = () => {
         </Dialog>
 
         {/* Modal 4: Reset Secret Confirmation */}
-        <Dialog open={!!resetData} onOpenChange={(o) => !o && setResetData(null)}>
+        <Dialog
+          open={!!resetData}
+          onOpenChange={(o) => !o && setResetData(null)}
+        >
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader>
               <DialogTitle className="text-amber-600 flex items-center gap-2">
@@ -378,12 +469,16 @@ const AppModules = () => {
               </DialogTitle>
             </DialogHeader>
             <div className="py-2 text-sm text-gray-500">
-              Apakah Anda yakin ingin mereset kunci rahasia (*Client Secret*) untuk{" "}
-              <strong className="text-gray-800">{resetData?.name}</strong>?<br />
-              Kunci lama akan langsung kedaluwarsa. Anda wajib mengupdate berkas konfigurasi `.env` pada server sub-aplikasi yang bersangkutan.
+              Apakah Anda yakin ingin mereset kunci rahasia (*Client Secret*)
+              untuk <strong className="text-gray-800">{resetData?.name}</strong>
+              ?<br />
+              Kunci lama akan langsung kedaluwarsa. Anda wajib mengupdate berkas
+              konfigurasi `.env` pada server sub-aplikasi yang bersangkutan.
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setResetData(null)}>Batal</Button>
+              <Button variant="outline" onClick={() => setResetData(null)}>
+                Batal
+              </Button>
               <Button
                 className="bg-amber-600 hover:bg-amber-700 text-white"
                 onClick={handleResetSecretSubmit}
@@ -407,36 +502,55 @@ const AppModules = () => {
               <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-start gap-3">
                 <AlertTriangle className="text-emerald-700 h-5 w-5 shrink-0 mt-0.5" />
                 <div className="text-xs text-emerald-800 leading-relaxed">
-                  <strong>PENTING:</strong> Salin kredensial di bawah ke server sub-aplikasi Anda.
-                  Kunci secret hanya akan ditampilkan **kali ini saja** demi keamanan data.
+                  <strong>PENTING:</strong> Salin kredensial di bawah ke server
+                  sub-aplikasi Anda. Kunci secret hanya akan ditampilkan **kali
+                  ini saja** demi keamanan data.
                 </div>
               </div>
 
               <div className="grid gap-1">
-                <span className="text-xs font-bold text-gray-500">Aplikasi:</span>
-                <span className="text-sm font-semibold text-gray-800">{showedSecret?.appName}</span>
+                <span className="text-xs font-bold text-gray-500">
+                  Aplikasi:
+                </span>
+                <span className="text-sm font-semibold text-gray-800">
+                  {showedSecret?.appName}
+                </span>
               </div>
 
               <div className="grid gap-1">
-                <span className="text-xs font-bold text-gray-500">Client ID:</span>
+                <span className="text-xs font-bold text-gray-500">
+                  Client ID:
+                </span>
                 <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 font-mono text-sm">
-                  <span className="truncate select-all text-gray-700 w-full">{showedSecret?.clientId}</span>
+                  <span className="truncate select-all text-gray-700 w-full">
+                    {showedSecret?.clientId}
+                  </span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-gray-400 hover:text-emerald-600 border border-gray-200 bg-white"
-                    onClick={() => handleCopy(showedSecret?.clientId || "", "id")}
+                    onClick={() =>
+                      handleCopy(showedSecret?.clientId || "", "id")
+                    }
                   >
-                    {copiedType === "id" ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                    {copiedType === "id" ? (
+                      <Check size={14} className="text-emerald-600" />
+                    ) : (
+                      <Copy size={14} />
+                    )}
                   </Button>
                 </div>
               </div>
 
               <div className="grid gap-1">
-                <span className="text-xs font-bold text-gray-500">Client Secret (Kunci Rahasia):</span>
+                <span className="text-xs font-bold text-gray-500">
+                  Client Secret (Kunci Rahasia):
+                </span>
                 <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 font-mono text-sm relative">
                   <span className="truncate select-all text-gray-700 w-full pr-10">
-                    {secretVisible ? showedSecret?.clientSecret : "••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"}
+                    {secretVisible
+                      ? showedSecret?.clientSecret
+                      : "••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"}
                   </span>
                   <div className="absolute right-2 top-1.5 flex items-center gap-1 bg-gray-50 pl-2">
                     <Button
@@ -452,9 +566,15 @@ const AppModules = () => {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-gray-400 hover:text-emerald-600 border border-gray-200 bg-white"
-                      onClick={() => handleCopy(showedSecret?.clientSecret || "", "secret")}
+                      onClick={() =>
+                        handleCopy(showedSecret?.clientSecret || "", "secret")
+                      }
                     >
-                      {copiedType === "secret" ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                      {copiedType === "secret" ? (
+                        <Check size={14} className="text-emerald-600" />
+                      ) : (
+                        <Copy size={14} />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -462,7 +582,9 @@ const AppModules = () => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-full">Saya Sudah Menyalin Kredensial</Button>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-full">
+                  Saya Sudah Menyalin Kredensial
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>

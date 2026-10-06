@@ -35,8 +35,8 @@ export const useCreateAppModule = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (payload: { name: string; url: string }) =>
-      admin.createAppModule(payload),
+    // UBAH: tipe parameter menjadi FormData
+    mutationFn: (payload: FormData) => admin.createAppModule(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["app-modules"] });
       queryClient.invalidateQueries({ queryKey: ["app-modules-paged"] });
@@ -58,7 +58,8 @@ export const useUpdateAppModule = () => {
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: { name: string; url: string } }) =>
+    // UBAH: tipe payload menjadi FormData
+    mutationFn: ({ id, payload }: { id: number; payload: FormData }) =>
       admin.updateAppModule(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["app-modules"] });

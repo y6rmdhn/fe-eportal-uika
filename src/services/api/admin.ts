@@ -131,17 +131,21 @@ const admin = {
   getAppModules() {
     return network.get("/admins/app-modules", { params: { all: 1 } });
   },
-  getAppModulesPaged(params: { page?: number; per_page?: number; search?: string }) {
+  getAppModulesPaged(params: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+  }) {
     return network.get("/admins/app-modules", { params });
   },
   getAppModule(id: number) {
     return network.get(`/admins/app-modules/${id}`);
   },
-  createAppModule(payload: { name: string; url: string }) {
+  createAppModule(payload: FormData) {
     return network.post("/admins/app-modules", payload);
   },
-  updateAppModule(id: number, payload: { name: string; url: string }) {
-    return network.put(`/admins/app-modules/${id}`, payload);
+  updateAppModule(id: number, payload: FormData) {
+    return network.post(`/admins/app-modules/${id}`, payload);
   },
   deleteAppModule(id: number) {
     return network.delete(`/admins/app-modules/${id}`);

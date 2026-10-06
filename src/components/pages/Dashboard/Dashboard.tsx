@@ -138,6 +138,7 @@ interface AppModule {
   id: number;
   name: string;
   url: string;
+  icon_url?: string | null;
 }
 
 interface MyModulesResponse {
@@ -503,13 +504,21 @@ export default function Dashboard() {
 
                         {/* Icon box */}
                         <div
-                          className="relative w-[72px] h-[72px] mb-4 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg]"
+                          className="relative w-[72px] h-[72px] mb-4 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg] overflow-hidden"
                           style={{
                             background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
                             boxShadow: `0 8px 24px -6px ${gradient.shadow}`,
                           }}
                         >
-                          {initials}
+                          {mod.icon_url ? (
+                            <img
+                              src={mod.icon_url}
+                              alt={mod.name}
+                              className="w-full h-full object-cover rounded-2xl"
+                            />
+                          ) : (
+                            initials
+                          )}
                           {/* Loading spinner overlay */}
                           {isOpening && (
                             <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
@@ -517,7 +526,6 @@ export default function Dashboard() {
                             </div>
                           )}
                         </div>
-
                         {/* Name */}
                         <h5 className="font-extrabold text-[14px] text-gray-900 tracking-tight leading-tight mb-1 group-hover:text-gray-800 transition-colors line-clamp-2">
                           {mod.name}
