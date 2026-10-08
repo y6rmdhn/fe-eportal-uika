@@ -79,6 +79,12 @@ export const SIDEBAR_ADMIN = [
     href: "/admin/login-slides",
     icon: <Images size={20} />,
   },
+  {
+    key: "sso-users",
+    label: "SSO Users",
+    href: "/admin/sso-users",
+    icon: <Users size={20} />,
+  },
 ];
 
 export const HEADER_TABLE_USER = [

@@ -339,6 +339,11 @@ const admin = {
   deleteSsoTemplate(id: number) {
     return network.delete(`/admins/sso-keys/${id}`);
   },
+  // ── SSO SYNC ─────────────────────────────────────────────────────────
+  getSsoUsers() {
+    return network.get("/sso/users-sync");
+  },
+
 };
 
 export default admin;
