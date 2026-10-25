@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Plus,
   Edit2,
@@ -10,6 +10,9 @@ import {
   EyeOff,
   AlertTriangle,
   ShieldCheck,
+  Upload,
+  X,
+  Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -37,7 +40,207 @@ import {
   useResetAppModuleSecret,
 } from "@/hooks/AppModules/useAppModules";
 import type { AppModule } from "@/types/general.type";
-import environment from "@/config/environment";
+
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_IMAGE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/svg+xml",
+  "image/webp",
+];
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+interface IconUploadSectionProps {
+  label: string;
+  isOptional?: boolean;
+  currentIconUrl?: string | null;
+  selectedFile: File | null;
+  previewUrl: string | null;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onSelectFile: (file: File | null) => void;
+  onRemoveFile: () => void;
+}
+
+const IconUploadSection = ({
+  label,
+  isOptional = false,
+  currentIconUrl,
+  selectedFile,
+  previewUrl,
+  fileInputRef,
+  onSelectFile,
+  onRemoveFile,
+}: IconUploadSectionProps) => {
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold text-gray-700">
+          {label}{" "}
+          {isOptional && (
+            <span className="text-gray-400 font-normal text-xs">
+              (Opsional)
+            </span>
+          )}
+        </Label>
+        <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+          Rasio 1:1
+        </span>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            onSelectFile(e.target.files[0]);
+          }
+        }}
+      />
+
+      {/* ── PREVIEW BOX ── */}
+      {previewUrl ? (
+        // Preview of newly selected file
+        <div className="border border-emerald-200 bg-emerald-50/40 rounded-xl p-3 flex items-center gap-3 transition-all">
+          <div className="w-16 h-16 rounded-xl border border-emerald-200 bg-white p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+            <img
+              src={previewUrl}
+              alt="Preview Icon Baru"
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-xs font-bold text-gray-800 truncate"
+                title={selectedFile?.name}
+              >
+                {selectedFile?.name || "Foto Baru"}
+              </span>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                Baru
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {selectedFile ? formatFileSize(selectedFile.size) : ""}
+            </p>
+            <p className="text-[10px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
+              <Check size={12} strokeWidth={2.5} /> Siap diunggah
+            </p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5 text-xs text-gray-700 hover:text-emerald-700 hover:border-emerald-300 bg-white"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Ganti
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+              title="Hapus foto terpilih"
+              onClick={onRemoveFile}
+            >
+              <X size={16} />
+            </Button>
+          </div>
+        </div>
+      ) : currentIconUrl ? (
+        // Preview of existing icon (for edit mode)
+        <div className="border border-gray-200 bg-gray-50/70 rounded-xl p-3 flex items-center gap-3">
+          <div className="w-16 h-16 rounded-xl border border-gray-200 bg-white p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+            <img
+              src={currentIconUrl}
+              alt="Icon Saat Ini"
+              className="w-full h-full object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-gray-800">
+                Icon Saat Ini
+              </span>
+              <span className="text-[10px] font-semibold text-gray-600 bg-gray-200/80 px-1.5 py-0.5 rounded">
+                Tersimpan
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              Icon ini akan tetap digunakan jika tidak memilih foto baru.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5 text-xs text-gray-700 hover:text-emerald-700 hover:border-emerald-300 bg-white flex items-center gap-1.5"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={13} />
+              Ganti Icon
+            </Button>
+          </div>
+        </div>
+      ) : (
+        // Empty state / Dropzone
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              onSelectFile(e.dataTransfer.files[0]);
+            }
+          }}
+          className="border-2 border-dashed border-gray-200 hover:border-emerald-500 hover:bg-emerald-50/20 rounded-xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all group text-center"
+        >
+          <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-emerald-100 flex items-center justify-center text-gray-400 group-hover:text-emerald-600 transition-colors">
+            <Upload size={18} />
+          </div>
+          <p className="text-xs font-semibold text-gray-700 group-hover:text-emerald-700">
+            Pilih foto atau seret ke sini
+          </p>
+          <p className="text-[11px] text-gray-400">
+            Klik untuk mencari file gambar icon modul
+          </p>
+        </div>
+      )}
+
+      {/* ── KETERANGAN & PETUNJUK ── */}
+      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-2.5 text-xs text-blue-900 flex gap-2.5 items-start">
+        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="font-semibold text-blue-950 text-[11px]">
+            Keterangan & Ketentuan Foto:
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 text-blue-800 text-[11px] leading-relaxed">
+            <li>
+              Format file didukung: <strong>PNG, JPG, JPEG, SVG, WebP</strong>
+            </li>
+            <li>
+              Ukuran maksimal: <strong>2 MB</strong>
+            </li>
+            <li>
+              Disarankan rasio <strong>1:1 (persegi)</strong> dengan latar transparan (PNG/SVG) untuk tampilan terbaik di dashboard.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AppModules = () => {
   const { data, isLoading } = useGetAppModules();
@@ -59,11 +262,126 @@ const AppModules = () => {
   const [createName, setCreateName] = useState("");
   const [createUrl, setCreateUrl] = useState("");
   const [createIcon, setCreateIcon] = useState<File | null>(null);
+  const [createIconPreview, setCreateIconPreview] = useState<string | null>(
+    null,
+  );
+  const createFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form Fields (Update)
   const [updateName, setUpdateName] = useState("");
   const [updateUrl, setUpdateUrl] = useState("");
   const [updateIcon, setUpdateIcon] = useState<File | null>(null);
+  const [updateIconPreview, setUpdateIconPreview] = useState<string | null>(
+    null,
+  );
+  const updateFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (createIconPreview) URL.revokeObjectURL(createIconPreview);
+      if (updateIconPreview) URL.revokeObjectURL(updateIconPreview);
+    };
+  }, [createIconPreview, updateIconPreview]);
+
+  // Validation & Selection Handlers
+  const validateAndSelectFile = (
+    file: File | null,
+    onSuccess: (file: File) => void,
+    inputRef: React.RefObject<HTMLInputElement | null>,
+  ) => {
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error(
+        "Format file tidak didukung. Harap gunakan format PNG, JPG, JPEG, SVG, atau WebP.",
+      );
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error(
+        "Ukuran foto maksimal 2 MB. Silakan pilih foto dengan ukuran lebih kecil.",
+      );
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
+    onSuccess(file);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const handleCreateIconChange = (file: File | null) => {
+    if (!file) {
+      handleRemoveCreateIcon();
+      return;
+    }
+    validateAndSelectFile(
+      file,
+      (validFile) => {
+        if (createIconPreview) URL.revokeObjectURL(createIconPreview);
+        setCreateIcon(validFile);
+        setCreateIconPreview(URL.createObjectURL(validFile));
+      },
+      createFileInputRef,
+    );
+  };
+
+  const handleRemoveCreateIcon = () => {
+    if (createIconPreview) URL.revokeObjectURL(createIconPreview);
+    setCreateIcon(null);
+    setCreateIconPreview(null);
+    if (createFileInputRef.current) createFileInputRef.current.value = "";
+  };
+
+  const handleUpdateIconChange = (file: File | null) => {
+    if (!file) {
+      handleRemoveUpdateIcon();
+      return;
+    }
+    validateAndSelectFile(
+      file,
+      (validFile) => {
+        if (updateIconPreview) URL.revokeObjectURL(updateIconPreview);
+        setUpdateIcon(validFile);
+        setUpdateIconPreview(URL.createObjectURL(validFile));
+      },
+      updateFileInputRef,
+    );
+  };
+
+  const handleRemoveUpdateIcon = () => {
+    if (updateIconPreview) URL.revokeObjectURL(updateIconPreview);
+    setUpdateIcon(null);
+    setUpdateIconPreview(null);
+    if (updateFileInputRef.current) updateFileInputRef.current.value = "";
+  };
+
+  const handleOpenCreateChange = (open: boolean) => {
+    if (!open) {
+      setCreateName("");
+      setCreateUrl("");
+      handleRemoveCreateIcon();
+    }
+    setCreateOpen(open);
+  };
+
+  // Open Update Modal
+  const openUpdateModal = (mod: AppModule) => {
+    if (updateIconPreview) URL.revokeObjectURL(updateIconPreview);
+    setUpdateData(mod);
+    setUpdateName(mod.name);
+    setUpdateUrl(mod.url);
+    setUpdateIcon(null);
+    setUpdateIconPreview(null);
+    if (updateFileInputRef.current) updateFileInputRef.current.value = "";
+  };
+
+  const closeUpdateModal = () => {
+    handleRemoveUpdateIcon();
+    setUpdateData(null);
+  };
 
   // Credentials Display Modal (upon create or reset secret)
   const [showSecretModal, setShowSecretModal] = useState(false);
@@ -102,7 +420,7 @@ const AppModules = () => {
       onSuccess: (res: any) => {
         setCreateName("");
         setCreateUrl("");
-        setCreateIcon(null);
+        handleRemoveCreateIcon();
         setCreateOpen(false);
 
         // Show newly generated client credentials
@@ -118,14 +436,6 @@ const AppModules = () => {
         }
       },
     });
-  };
-
-  // Open Update Modal
-  const openUpdateModal = (mod: AppModule) => {
-    setUpdateData(mod);
-    setUpdateName(mod.name);
-    setUpdateUrl(mod.url);
-    setUpdateIcon(null); // Reset file input when opening modal
   };
 
   // Submit Update
@@ -153,8 +463,7 @@ const AppModules = () => {
       },
       {
         onSuccess: () => {
-          setUpdateData(null);
-          setUpdateIcon(null);
+          closeUpdateModal();
         },
       },
     );
@@ -205,7 +514,7 @@ const AppModules = () => {
               <img
                 src={mod.icon_url}
                 alt={mod.name}
-                className="w-8 h-8 rounded-lg object-cover border border-gray-200"
+                className="w-8 h-8 rounded-lg object-contain border border-gray-200 bg-white p-0.5"
               />
             ) : (
               <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
@@ -322,8 +631,8 @@ const AppModules = () => {
         {/* ── DIALOGS ── */}
 
         {/* Modal 1: Create AppModule */}
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+        <Dialog open={createOpen} onOpenChange={handleOpenCreateChange}>
+          <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Tambah Aplikasi & SSO Client</DialogTitle>
             </DialogHeader>
@@ -344,20 +653,18 @@ const AppModules = () => {
                   onChange={(e) => setCreateUrl(e.target.value)}
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label>Icon Aplikasi (Opsional)</Label>
-                <Input
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      setCreateIcon(e.target.files[0]);
-                    }
-                  }}
-                />
-              </div>
+
+              <IconUploadSection
+                label="Icon / Foto Aplikasi"
+                isOptional
+                selectedFile={createIcon}
+                previewUrl={createIconPreview}
+                fileInputRef={createFileInputRef}
+                onSelectFile={handleCreateIconChange}
+                onRemoveFile={handleRemoveCreateIcon}
+              />
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-2">
               <DialogClose asChild>
                 <Button variant="outline">Batal</Button>
               </DialogClose>
@@ -375,9 +682,9 @@ const AppModules = () => {
         {/* Modal 2: Update AppModule */}
         <Dialog
           open={!!updateData}
-          onOpenChange={(o) => !o && setUpdateData(null)}
+          onOpenChange={(o) => !o && closeUpdateModal()}
         >
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Aplikasi / Modul</DialogTitle>
             </DialogHeader>
@@ -396,21 +703,19 @@ const AppModules = () => {
                   onChange={(e) => setUpdateUrl(e.target.value)}
                 />
               </div>
-              <div className="grid gap-1.5">
-                <Label>Icon Aplikasi (Ganti jika perlu)</Label>
-                <Input
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      setUpdateIcon(e.target.files[0]);
-                    }
-                  }}
-                />
-              </div>
+
+              <IconUploadSection
+                label="Icon / Foto Aplikasi"
+                currentIconUrl={updateData?.icon_url}
+                selectedFile={updateIcon}
+                previewUrl={updateIconPreview}
+                fileInputRef={updateFileInputRef}
+                onSelectFile={handleUpdateIconChange}
+                onRemoveFile={handleRemoveUpdateIcon}
+              />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setUpdateData(null)}>
+            <DialogFooter className="pt-2">
+              <Button variant="outline" onClick={closeUpdateModal}>
                 Batal
               </Button>
               <Button

@@ -28,6 +28,8 @@ export type AppModule = {
   id: number;
   name: string;
   url: string;
+  icon?: string | null;
+  icon_url?: string | null;
   sso_client?: SsoClient;
   ssoClient?: SsoClient;
   created_at?: string;
