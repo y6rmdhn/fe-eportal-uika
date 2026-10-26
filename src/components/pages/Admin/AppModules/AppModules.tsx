@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAppModuleIconUrl } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -160,13 +162,16 @@ const IconUploadSection = ({
       ) : currentIconUrl ? (
         // Preview of existing icon (for edit mode)
         <div className="border border-gray-200 bg-gray-50/70 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-16 h-16 rounded-xl border border-gray-200 bg-white p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-            <img
-              src={currentIconUrl}
+          <Avatar className="w-16 h-16 rounded-xl border border-gray-200 bg-white p-1 flex items-center justify-center shrink-0 shadow-sm overflow-hidden after:rounded-xl">
+            <AvatarImage
+              src={getAppModuleIconUrl(currentIconUrl) ?? undefined}
               alt="Icon Saat Ini"
               className="w-full h-full object-contain rounded-lg"
             />
-          </div>
+            <AvatarFallback className="rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-sm">
+              APP
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-gray-800">
@@ -510,17 +515,16 @@ const AppModules = () => {
             {index + 1}
           </span>,
           <div key={`name-${index}`} className="flex items-center gap-3">
-            {mod.icon_url ? (
-              <img
-                src={mod.icon_url}
+            <Avatar className="w-8 h-8 rounded-lg border border-gray-200 bg-white p-0.5 shrink-0 after:rounded-lg">
+              <AvatarImage
+                src={getAppModuleIconUrl(mod.icon_url) ?? undefined}
                 alt={mod.name}
-                className="w-8 h-8 rounded-lg object-contain border border-gray-200 bg-white p-0.5"
+                className="w-full h-full object-contain rounded-md"
               />
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
+              <AvatarFallback className="rounded-md bg-emerald-100 text-emerald-700 font-extrabold text-xs">
                 {mod.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+              </AvatarFallback>
+            </Avatar>
             <span className="font-semibold text-gray-800">{mod.name}</span>
           </div>,
           <a

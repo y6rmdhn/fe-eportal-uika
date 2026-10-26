@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAppModuleIconUrl } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useLoaderData } from "react-router-dom";
 
@@ -511,11 +512,16 @@ export default function Dashboard() {
                           }}
                         >
                           {mod.icon_url ? (
-                            <img
-                              src={mod.icon_url}
-                              alt={mod.name}
-                              className="w-full h-full object-cover rounded-2xl"
-                            />
+                            <Avatar className="w-full h-full rounded-2xl after:rounded-2xl">
+                              <AvatarImage
+                                src={getAppModuleIconUrl(mod.icon_url) ?? undefined}
+                                alt={mod.name}
+                                className="w-full h-full object-cover rounded-2xl"
+                              />
+                              <AvatarFallback className="w-full h-full rounded-2xl bg-transparent flex items-center justify-center text-white font-black text-xl">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
                           ) : (
                             initials
                           )}
