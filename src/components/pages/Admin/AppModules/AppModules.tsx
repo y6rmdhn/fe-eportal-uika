@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAppModuleIconUrl } from "@/lib/utils";
+import { getAppModuleIconUrl, compressImageFile } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -290,7 +290,7 @@ const AppModules = () => {
   }, [createIconPreview, updateIconPreview]);
 
   // Validation & Selection Handlers
-  const validateAndSelectFile = (
+  const validateAndSelectFile = async (
     file: File | null,
     onSuccess: (file: File) => void,
     inputRef: React.RefObject<HTMLInputElement | null>,
@@ -313,7 +313,14 @@ const AppModules = () => {
       return;
     }
 
-    onSuccess(file);
+    // Kompres otomatis gambar agar ringan sebelum diunggah (biasanya dari 1-2MB turun jadi ~20-50KB)
+    try {
+      const compressed = await compressImageFile(file, 512, 512, 0.85);
+      onSuccess(compressed);
+    } catch {
+      onSuccess(file);
+    }
+
     if (inputRef.current) inputRef.current.value = "";
   };
 
