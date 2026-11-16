@@ -20,16 +20,22 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Di AuthContext atau useLogout hook
   const logout = async () => {
-    setUser(null); // hapus state dulu
-    session.clearSession(); // hapus cookie FE dulu
+    setUser(null);
 
-    // Fire and forget — tidak perlu tunggu response
-    auth.logout().catch(() => {});
-
-    // Baru redirect — tidak lewat interceptor
-    window.location.href = `${import.meta.env.BASE_URL}login`;
+    // Tunggu logout server (back-channel ke UCL/SIAKAD/dll) maksimal 4 detik
+    // SEBELUM pindah halaman. Sebelumnya request di-"fire and forget" lalu
+    // langsung redirect, sehingga browser bisa membatalkan request dan aplikasi
+    // lain tidak pernah tahu user sudah keluar (sesi/cache lama tertahan).
+    try {
+      await Promise.race([
+        auth.logout().catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
+    } finally {
+      session.clearSession();
+      window.location.href = `${import.meta.env.BASE_URL}login`;
+    }
   };
 
   return (

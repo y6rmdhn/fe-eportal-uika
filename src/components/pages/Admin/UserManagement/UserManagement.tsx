@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ShieldOff,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import DialogCreateUser from "./Dialog/DialogCreateUser";
 import DialogUpdateUser from "./Dialog/DialogUpdateUser";
@@ -23,6 +24,8 @@ import type { UserData } from "@/types/general.type";
 import DialogDeleteUser from "./Dialog/DialogDeleteUser";
 import DialogResetPassword from "./Dialog/DialogResetPassword";
 import DialogVerifyUser from "./Dialog/DialogVerifyUser";
+import DialogSyncApps from "./Dialog/DialogSyncApps";
+import { Checkbox } from "@/components/ui/checkbox";
 import useExportImportUser from "@/hooks/UserManagement/useExportImportUser";
 import { Spinner } from "@/components/ui/spinner";
 import DialogImportUser from "./Dialog/DialogImportUser";
@@ -41,6 +44,14 @@ const UserManagement = () => {
   const [currentVerifiedFilter, setCurrentVerifiedFilter] =
     useState<string>("");
   const [verifyAction, setVerifyAction] = useState<UserData | null>(null);
+
+  // User terpilih untuk "Sinkronkan ke aplikasi lain" (bertahan antar halaman).
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [syncOpen, setSyncOpen] = useState(false);
+  const toggleSelected = (id: string, on: boolean) =>
+    setSelectedIds((prev) =>
+      on ? [...new Set([...prev, id])] : prev.filter((x) => x !== id),
+    );
 
   const handleChanngeAction = (open: boolean) => {
     if (!open) setSelectedAction(null);
@@ -134,6 +145,12 @@ const UserManagement = () => {
     return (dataUserManagement?.data || []).map(
       (user: UserData, index: number) => {
         return [
+          <Checkbox
+            key={`sel-${user.id}`}
+            checked={selectedIds.includes(user.id)}
+            onCheckedChange={(v) => toggleSelected(user.id, v === true)}
+            aria-label={`Pilih ${user.email}`}
+          />,
           <span key={`no-${index}`} className="font-medium text-gray-500">
             {currentLimit * (currentPage - 1) + index + 1}
           </span>,
@@ -251,6 +268,7 @@ const UserManagement = () => {
     currentSearch,
     currentPage,
     handleToggleActive,
+    selectedIds,
   ]);
 
   return (
@@ -288,6 +306,45 @@ const UserManagement = () => {
                 handleFileChange={handleFileChange}
                 downloadTemplate={downloadTemplate}
               />
+              <Button
+                variant="ghost"
+                className="h-11 rounded-xl text-gray-600 font-semibold px-3"
+                onClick={() => {
+                  const pageIds = (dataUserManagement?.data || []).map(
+                    (u: UserData) => u.id,
+                  );
+                  const allSelected =
+                    pageIds.length > 0 &&
+                    pageIds.every((id: string) => selectedIds.includes(id));
+                  setSelectedIds((prev) =>
+                    allSelected
+                      ? prev.filter((id) => !pageIds.includes(id))
+                      : [...new Set([...prev, ...pageIds])],
+                  );
+                }}
+              >
+                Pilih / batal pilih halaman ini
+              </Button>
+              {selectedIds.length > 0 && (
+                <Button
+                  variant="ghost"
+                  className="h-11 rounded-xl text-gray-500 px-3"
+                  onClick={() => setSelectedIds([])}
+                >
+                  Kosongkan pilihan
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50 font-bold px-4 transition-all"
+                onClick={() => setSyncOpen(true)}
+                disabled={selectedIds.length === 0}
+                title="Pilih user pada tabel, lalu sinkronkan ke UCL, SIAKAD, dan SIMPEG"
+              >
+                <RefreshCw className="h-4 w-4 mr-1.5" />
+                Sinkronkan ke Aplikasi
+                {selectedIds.length > 0 ? ` (${selectedIds.length})` : ""}
+              </Button>
               <Button
                 variant="outline"
                 className="h-11 rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-bold px-4 transition-all"
@@ -367,6 +424,7 @@ const UserManagement = () => {
         <div className="bg-white p-2 rounded-[1.5rem] border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
           <DataTable
             header={[
+              "Pilih",
               "No",
               "Informasi User",
               "ID (NPM/NIP/NIDN)",
@@ -402,6 +460,11 @@ const UserManagement = () => {
             }
             currentData={selectedAction?.data}
             handleChangeAction={handleChanngeAction}
+          />
+          <DialogSyncApps
+            open={syncOpen}
+            userIds={selectedIds}
+            onOpenChange={setSyncOpen}
           />
           <DialogVerifyUser
             open={verifyAction !== null}

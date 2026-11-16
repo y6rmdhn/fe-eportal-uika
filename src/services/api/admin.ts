@@ -87,6 +87,15 @@ const admin = {
       responseType: "blob",
     });
   },
+  getSyncAppTargets() {
+    return network.get("/admins/sync-apps/targets");
+  },
+  syncUsersToApps(userIds: string[], apps?: string[]) {
+    return network.post("/admins/sync-apps", {
+      user_ids: userIds,
+      ...(apps ? { apps } : {}),
+    });
+  },
   importUsers(file: File) {
     const formData = new FormData();
     formData.append("file", file);

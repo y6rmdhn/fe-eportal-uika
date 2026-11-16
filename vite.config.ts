@@ -10,6 +10,13 @@ export default defineConfig(() => {
     // Aplikasi sekarang di-serve dari root domain (eportal.uika-bogor.ac.id/),
     // bukan lagi di path /eportal/ seperti sebelum migrasi domain.
     base: "/",
+    // Build produksi: tanpa source map & tanpa console.log/debug/info (log API/token
+    // tidak boleh terbaca di DevTools pengunjung).
+    build: { sourcemap: false },
+    esbuild: {
+      pure: ["console.log", "console.debug", "console.info"],
+      drop: ["debugger"],
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

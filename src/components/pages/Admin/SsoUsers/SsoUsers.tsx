@@ -28,7 +28,6 @@ const FIELDS = [
     { key: "nama_lengkap", type: "string | null",   desc: "Nama lengkap user. Bisa null jika data pribadi belum diisi.", badge: "Opsional" },
     { key: "email",        type: "string",          desc: "Email user, bersifat unik di seluruh sistem.", badge: "Wajib" },
     { key: "username",     type: "string",          desc: "NPM (mahasiswa), NIDN (dosen), atau email sebagai fallback.", badge: "Wajib" },
-    { key: "password",     type: "string (Bcrypt)", desc: "Password hashed. Verifikasi login via /sso/introspect, bukan lokal.", badge: "Hashed" },
     { key: "role",         type: "string",          desc: "Role user: admin, Mahasiswa, Dosen, Staff Akademik, dll.", badge: "Wajib" },
     { key: "jabatan",      type: "string[]",        desc: "Daftar jabatan user dalam ekosistem E-Portal.", badge: "Array" },
     { key: "is_verified",  type: "boolean",         desc: "Status verifikasi akun. false = belum aktif, tidak boleh login.", badge: "Wajib" },
@@ -74,7 +73,6 @@ const JSON_EXAMPLE = `{
       "nama_lengkap": "Budi Santoso",
       "email": "budi@uika.ac.id",
       "username": "0011223344",
-      "password": "$2y$10$hashedpassword...",
       "role": "Mahasiswa",
       "jabatan": ["mahasiswa"],
       "is_verified": true,
@@ -332,8 +330,8 @@ export default function SsoUsers() {
                 <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4">
                     <AlertCircle className="text-blue-500 mt-0.5 shrink-0" size={18} />
                     <p className="text-sm text-blue-800">
-                        Endpoint <code className="bg-blue-100 px-1 rounded text-xs">/api/sso/users-sync</code> bersifat <strong>publik</strong> — tidak perlu token.
-                        Password selalu dikembalikan dalam format <strong>Bcrypt hash</strong>.
+                        Endpoint <code className="bg-blue-100 px-1 rounded text-xs">/api/sso/users-sync</code> hanya dapat diakses <strong>admin yang sudah login</strong>.
+                        Hash password <strong>tidak pernah</strong> disertakan.
                     </p>
                 </div>
 
@@ -475,7 +473,7 @@ export default function SsoUsers() {
                     <div>
                         <p className="text-sm font-bold text-orange-800">Catatan Keamanan</p>
                         <p className="text-xs text-orange-700 mt-1">
-                            Password selalu di-hash <strong>Bcrypt</strong>. Sub-aplikasi <strong>DILARANG</strong> menyimpan plain-text.
+                            Sub-aplikasi <strong>tidak menerima password</strong> dari E-Portal dan <strong>DILARANG</strong> menyimpan plain-text.
                             Verifikasi login selalu via <code className="bg-orange-100 px-1 rounded">POST /api/sso/introspect</code>.
                         </p>
                     </div>

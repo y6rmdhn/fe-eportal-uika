@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import auth from "@/services/api/auth.ts";
 import { useQuery } from "@tanstack/react-query";
@@ -133,6 +133,57 @@ function getRoleTheme(role?: string) {
   if (r.includes("mahasiswa"))
     return { from: "#059669", to: "#047857", shadow: "rgba(5,150,105,0.25)" };
   return { from: "#7c3aed", to: "#6d28d9", shadow: "rgba(124,58,237,0.25)" };
+}
+
+/** Ikon aplikasi: polos bila ada gambar, placeholder inisial bila tidak ada / gagal dimuat. */
+function AppIcon({
+  iconUrl,
+  name,
+  initials,
+  gradient,
+  isOpening,
+}: {
+  iconUrl?: string | null;
+  name: string;
+  initials: string;
+  gradient: { from: string; to: string; shadow: string };
+  isOpening: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [iconUrl]);
+  const hasIcon = !!iconUrl && !failed;
+
+  return (
+    <div
+      className={`relative w-[72px] h-[72px] mb-4 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg] overflow-hidden ${
+        hasIcon ? "" : "text-white font-black text-xl shadow-lg"
+      }`}
+      style={
+        hasIcon
+          ? undefined
+          : {
+              background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+              boxShadow: `0 8px 24px -6px ${gradient.shadow}`,
+            }
+      }
+    >
+      {hasIcon ? (
+        <img
+          src={iconUrl as string}
+          alt={name}
+          className="w-full h-full object-contain"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initials
+      )}
+      {isOpening && (
+        <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface AppModule {
@@ -503,35 +554,15 @@ export default function Dashboard() {
                           }}
                         />
 
-                        {/* Icon box */}
-                        <div
-                          className="relative w-[72px] h-[72px] mb-4 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg] overflow-hidden"
-                          style={{
-                            background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
-                            boxShadow: `0 8px 24px -6px ${gradient.shadow}`,
-                          }}
-                        >
-                          {mod.icon_url ? (
-                            <Avatar className="w-full h-full rounded-2xl after:rounded-2xl">
-                              <AvatarImage
-                                src={getAppModuleIconUrl(mod.icon_url) ?? undefined}
-                                alt={mod.name}
-                                className="w-full h-full object-cover rounded-2xl"
-                              />
-                              <AvatarFallback className="w-full h-full rounded-2xl bg-transparent flex items-center justify-center text-white font-black text-xl">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            initials
-                          )}
-                          {/* Loading spinner overlay */}
-                          {isOpening && (
-                            <div className="absolute inset-0 bg-black/20 rounded-2xl flex items-center justify-center">
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
+                        {/* Icon box: ikon terupload → tampil polos (tanpa placeholder & latar warna);
+                            belum ada ikon / gagal dimuat → placeholder inisial berlatar gradient */}
+                        <AppIcon
+                          iconUrl={getAppModuleIconUrl(mod.icon_url)}
+                          name={mod.name}
+                          initials={initials}
+                          gradient={gradient}
+                          isOpening={isOpening}
+                        />
                         {/* Name */}
                         <h5 className="font-extrabold text-[14px] text-gray-900 tracking-tight leading-tight mb-1 group-hover:text-gray-800 transition-colors line-clamp-2">
                           {mod.name}
