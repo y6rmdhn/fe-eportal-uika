@@ -114,6 +114,7 @@ export const HEADER_TABLE_APP_MODULE = [
   "Nama Modul",
   "URL",
   "Client Credentials",
+  "Status",
   "Aksi",
 ];
 

@@ -13,6 +13,8 @@ import {
   Upload,
   X,
   Info,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -22,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAppModuleIconUrl, compressImageFile } from "@/lib/utils";
 import {
@@ -266,6 +269,7 @@ const AppModules = () => {
   // Form Fields (Create)
   const [createName, setCreateName] = useState("");
   const [createUrl, setCreateUrl] = useState("");
+  const [createIsActive, setCreateIsActive] = useState(true);
   const [createIcon, setCreateIcon] = useState<File | null>(null);
   const [createIconPreview, setCreateIconPreview] = useState<string | null>(
     null,
@@ -275,6 +279,7 @@ const AppModules = () => {
   // Form Fields (Update)
   const [updateName, setUpdateName] = useState("");
   const [updateUrl, setUpdateUrl] = useState("");
+  const [updateIsActive, setUpdateIsActive] = useState(true);
   const [updateIcon, setUpdateIcon] = useState<File | null>(null);
   const [updateIconPreview, setUpdateIconPreview] = useState<string | null>(
     null,
@@ -374,6 +379,7 @@ const AppModules = () => {
     if (!open) {
       setCreateName("");
       setCreateUrl("");
+      setCreateIsActive(true);
       handleRemoveCreateIcon();
     }
     setCreateOpen(open);
@@ -385,9 +391,19 @@ const AppModules = () => {
     setUpdateData(mod);
     setUpdateName(mod.name);
     setUpdateUrl(mod.url);
+    setUpdateIsActive(mod.is_active ?? true);
     setUpdateIcon(null);
     setUpdateIconPreview(null);
     if (updateFileInputRef.current) updateFileInputRef.current.value = "";
+  };
+
+  // Toggle cepat aktif/nonaktif langsung dari tabel, tanpa buka dialog edit
+  // (useUpdateAppModule sudah menampilkan toast sukses sendiri, tidak perlu toast tambahan di sini)
+  const handleQuickToggle = (mod: AppModule) => {
+    const formData = new FormData();
+    formData.append("is_active", mod.is_active ? "0" : "1");
+    formData.append("_method", "PUT");
+    mutateUpdate({ id: mod.id, payload: formData });
   };
 
   const closeUpdateModal = () => {
@@ -424,6 +440,7 @@ const AppModules = () => {
     const formData = new FormData();
     formData.append("name", createName.trim());
     formData.append("url", createUrl.trim());
+    formData.append("is_active", createIsActive ? "1" : "0");
     if (createIcon) {
       formData.append("icon", createIcon);
     }
@@ -432,6 +449,7 @@ const AppModules = () => {
       onSuccess: (res: any) => {
         setCreateName("");
         setCreateUrl("");
+        setCreateIsActive(true);
         handleRemoveCreateIcon();
         setCreateOpen(false);
 
@@ -461,6 +479,7 @@ const AppModules = () => {
     const formData = new FormData();
     formData.append("name", updateName.trim());
     formData.append("url", updateUrl.trim());
+    formData.append("is_active", updateIsActive ? "1" : "0");
     if (updateIcon) {
       formData.append("icon", updateIcon);
     }
@@ -566,7 +585,34 @@ const AppModules = () => {
               <span className="text-xs text-gray-400 italic">Belum dibuat</span>
             )}
           </div>,
+          <span
+            key={`status-${index}`}
+            className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+              mod.is_active !== false
+                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                : "bg-gray-100 text-gray-500 border-gray-200"
+            }`}
+          >
+            {mod.is_active !== false ? "Aktif" : "Nonaktif"}
+          </span>,
           <div key={`action-${index}`} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 rounded-lg transition-colors ${
+                mod.is_active !== false
+                  ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                  : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              }`}
+              title={mod.is_active !== false ? "Nonaktifkan" : "Aktifkan"}
+              onClick={() => handleQuickToggle(mod)}
+            >
+              {mod.is_active !== false ? (
+                <Power size={16} strokeWidth={2.5} />
+              ) : (
+                <PowerOff size={16} strokeWidth={2.5} />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -665,6 +711,26 @@ const AppModules = () => {
                 />
               </div>
 
+              <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2.5">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">
+                    Status Aplikasi
+                  </Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Nonaktif = ikon disembunyikan dari dashboard user & link tidak bisa diakses.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Switch
+                    checked={createIsActive}
+                    onCheckedChange={setCreateIsActive}
+                  />
+                  <span className="text-xs font-semibold text-gray-600 w-14">
+                    {createIsActive ? "Aktif" : "Nonaktif"}
+                  </span>
+                </div>
+              </div>
+
               <IconUploadSection
                 label="Icon / Foto Aplikasi"
                 isOptional
@@ -713,6 +779,26 @@ const AppModules = () => {
                   value={updateUrl}
                   onChange={(e) => setUpdateUrl(e.target.value)}
                 />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2.5">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">
+                    Status Aplikasi
+                  </Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Nonaktif = ikon disembunyikan dari dashboard user & link tidak bisa diakses.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Switch
+                    checked={updateIsActive}
+                    onCheckedChange={setUpdateIsActive}
+                  />
+                  <span className="text-xs font-semibold text-gray-600 w-14">
+                    {updateIsActive ? "Aktif" : "Nonaktif"}
+                  </span>
+                </div>
               </div>
 
               <IconUploadSection

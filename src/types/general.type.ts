@@ -30,6 +30,7 @@ export type AppModule = {
   url: string;
   icon?: string | null;
   icon_url?: string | null;
+  is_active?: boolean;
   sso_client?: SsoClient;
   ssoClient?: SsoClient;
   created_at?: string;
